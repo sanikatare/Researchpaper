@@ -1,4 +1,4 @@
-"""Streamlit entry point for the Gemini 4 Hydrogen Safety Research Workbench."""
+"""Streamlit entry point for the Gemini 4 Hydrogen Cross-Modal Safety Research Workbench."""
 
 from __future__ import annotations
 
@@ -11,47 +11,45 @@ if str(ROOT_DIR) not in sys.path:
 
 import streamlit as st
 
-from app.components import inject_light_theme_css, render_status_badge
+from app.components import inject_theme_css
 from app.navigation import PAGES
 from config import DEFAULT_MODEL_ID, ensure_directories
 from dataset.scenario_manager import load_registry
-from experiment.hydrogen_client import is_api_fully_validated
+from experiment.hydrogen_client import get_api_key, is_api_fully_validated
 
 
 def main() -> None:
     ensure_directories()
     st.set_page_config(
-        page_title="Gemini 4 Hydrogen Safety Study",
+        page_title="Gemini 4 Hydrogen Research",
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    inject_light_theme_css()
+    inject_theme_css()
 
     with st.sidebar:
-        st.markdown("### Safety Research Workbench")
-        st.caption("Cross-Modal Thinking-Level Evaluation")
+        st.markdown("### Gemini 4 Hydrogen")
+        st.caption("Cross-Modal Safety Study")
         st.divider()
         selected_page = st.radio(
             "Navigation",
             list(PAGES.keys()),
+            index=0,
             label_visibility="collapsed",
         )
         st.divider()
         api_ok = is_api_fully_validated()
+        key_set = bool(get_api_key())
         reg = load_registry()
+        api_label = (
+            "Verified (4/4)"
+            if api_ok
+            else ("Key set (unverified)" if key_set else "Not connected")
+        )
         st.caption(f"Model: `{DEFAULT_MODEL_ID}`")
-        st.caption(f"Pilot Dataset: `{reg.get('active_pilot_version') or 'None'}`")
-        st.caption(f"Main Dataset: `{reg.get('active_main_version') or 'None'}`")
-        if api_ok:
-            st.markdown(
-                render_status_badge("API: 4/4 Levels Validated", "green"),
-                unsafe_allow_html=True,
-            )
-        else:
-            st.markdown(
-                render_status_badge("API Validation Incomplete", "yellow"),
-                unsafe_allow_html=True,
-            )
+        st.caption(f"API: {api_label}")
+        st.caption(f"Pilot dataset: `{reg.get('active_pilot_version') or 'None'}`")
+        st.caption(f"Main dataset: `{reg.get('active_main_version') or 'None'}`")
 
     PAGES[selected_page]()
 

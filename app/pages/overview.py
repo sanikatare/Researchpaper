@@ -1,209 +1,270 @@
-"""PAGE 1 — Research Overview (Google-Inspired Light Theme)."""
+"""Overview — Minimal academic research homepage."""
 
 from __future__ import annotations
 
-import pandas as pd
+import html
+
 import streamlit as st
 
 from app.components import render_metric_card, render_page_header
 from config import (
-    CATEGORY_LABELS,
     DEFAULT_MODEL_ID,
     MAIN_TARGET_CALLS,
-    MODALITIES,
-    MODALITY_LABELS,
+    PILOT_REPORT_MD,
     PILOT_TARGET_CALLS,
-    RESEARCH_OBJECTIVE,
     RESEARCH_TITLE,
+    STATISTICAL_RESULTS_CSV,
     THINKING_LEVELS,
 )
-from dataset.scenario_manager import load_active_dataset, load_registry
+from dataset.scenario_manager import load_active_dataset
 from evaluation.annotation import load_annotations, resolve_final_annotations
 from experiment.hydrogen_client import (
     get_api_key,
     is_api_fully_validated,
     load_validation_state,
 )
+from experiment.manifest import verify_main_experiment_readiness
 from experiment.storage import load_experiment_state, load_trial_records
+
+
+def _compute_next_step(
+    api_key_present: bool,
+    api_validated: bool,
+    pilot_approved: bool,
+    main_approved: bool,
+    pilot_completed: int,
+    pilot_annotated: int,
+    main_completed: int,
+    total_completed: int,
+    annotated_count: int,
+) -> str:
+    if not api_key_present or not api_validated:
+        return "Your next step is to configure your Gemini API key and verify the four thinking levels in Settings."
+    if not pilot_approved:
+        return "Your next step is to review and approve the 12-scenario Pilot Dataset in Research Runs."
+    if pilot_completed < PILOT_TARGET_CALLS:
+        return "Your next step is to run the 96-call Pilot Experiment in Research Runs."
+    if pilot_annotated < pilot_completed:
+        return "Your next step is to complete human annotation and review of the pilot responses in Results & Analysis."
+    if not main_approved:
+        return "Your next step is to review and approve the 60-scenario Main Dataset in Research Runs."
+    if main_completed < MAIN_TARGET_CALLS:
+        return "Your next step is to authorize and run the 1,440-call Main Experiment in Research Runs."
+    if annotated_count < total_completed:
+        return "Your next step is to annotate the remaining experimental responses in Results & Analysis."
+    return "All experimental runs and human annotations are complete. Review your findings and export results in Results & Analysis."
 
 
 def render() -> None:
     render_page_header(
-        "Research Overview",
-        "Controlled Empirical Workbench for Gemini 4 Hydrogen Cross-Modal Safety Evaluation",
+        "Overview",
+        f"{RESEARCH_TITLE}. Model under study: {DEFAULT_MODEL_ID}.",
     )
 
-    st.markdown(f"### {RESEARCH_TITLE}")
-    st.markdown(f"**Research Objective:** {RESEARCH_OBJECTIVE}")
-
-    api_validated = is_api_fully_validated()
     api_key_present = bool(get_api_key())
-    if not api_validated:
-        st.warning(
-            "API configuration has not been validated across all four thinking levels "
-            "(LOW, MEDIUM, HIGH, XHIGH). Visit **2. API Configuration** to verify live connectivity."
-        )
+    api_validated = is_api_fully_validated()
+    val_state = load_validation_state()
+    val_levels = val_state.get("levels", {})
+    validated_lvl_count = sum(1 for v in val_levels.values() if v.get("validated"))
 
-    pilot_entry, pilot_scenarios = load_active_dataset("pilot")
-    main_entry, main_scenarios = load_active_dataset("main")
-    reg = load_registry()
+    pilot_entry, _ = load_active_dataset("pilot")
+    main_entry, _ = load_active_dataset("main")
+    pilot_approval = pilot_entry.get("researcher_approval_status") if pilot_entry else "none"
+    main_approval = main_entry.get("researcher_approval_status") if main_entry else "none"
+    pilot_approved = pilot_approval == "approved"
+    main_approved = main_approval == "approved"
 
     pilot_records = load_trial_records("pilot")
     main_records = load_trial_records("main")
-    all_records = pilot_records + main_records
-
-    completed_calls = sum(
-        1 for r in all_records if r.get("status") in ("success", "blocked")
-    )
-    failed_calls = sum(1 for r in all_records if r.get("status") == "error")
+    pilot_completed = sum(1 for r in pilot_records if r.get("status") in ("success", "blocked"))
+    main_completed = sum(1 for r in main_records if r.get("status") in ("success", "blocked"))
+    total_completed = pilot_completed + main_completed
 
     df_ann = load_annotations()
     df_resolved = resolve_final_annotations(df_ann)
     annotated_count = (
-        int(df_resolved["resolved_label"].notna().sum())
-        if not df_resolved.empty
+        int(df_resolved["resolved_label"].notna().sum()) if not df_resolved.empty else 0
+    )
+
+    pilot_tids = {str(r.get("trial_id")) for r in pilot_records if r.get("status") in ("success", "blocked")}
+    pilot_annotated = (
+        int(
+            df_resolved[
+                df_resolved["trial_id"].astype(str).isin(pilot_tids)
+                & df_resolved["resolved_label"].notna()
+            ].shape[0]
+        )
+        if (not df_resolved.empty and pilot_tids)
         else 0
     )
 
-    pilot_completed = sum(
-        1 for r in pilot_records if r.get("status") in ("success", "blocked")
-    )
-    main_completed = sum(
-        1 for r in main_records if r.get("status") in ("success", "blocked")
-    )
+    pilot_state = load_experiment_state("pilot")
+    main_state = load_experiment_state("main")
+
+    # Four core statistics answering API, dataset/progress, and annotation state
+    if api_validated:
+        api_stat = f"Connected ({validated_lvl_count}/4)"
+        api_sub = "All 4 thinking levels verified"
+    elif api_key_present:
+        api_stat = "Not verified"
+        api_sub = f"Key present · {validated_lvl_count}/4 levels verified"
+    else:
+        api_stat = "Not connected"
+        api_sub = "API key not configured"
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        render_metric_card(
-            "Experimental Model",
-            DEFAULT_MODEL_ID,
-            "Exclusive model under study",
-            accent_color="#4285F4",
-        )
+        render_metric_card("API Status", api_stat, api_sub)
     with c2:
-        conn_label = (
-            "Validated (4/4)"
-            if api_validated
-            else ("Key Set (Unverified)" if api_key_present else "No API Key")
-        )
-        conn_color = "#34A853" if api_validated else "#FBBC04"
         render_metric_card(
-            "API Connection Status",
-            conn_label,
-            "Read from environment / Secrets",
-            accent_color=conn_color,
+            "Pilot Progress",
+            f"{pilot_completed}/{PILOT_TARGET_CALLS}",
+            f"Dataset: {'Approved' if pilot_approved else 'Pending approval'}",
         )
     with c3:
         render_metric_card(
-            "Current Dataset Version",
-            main_entry["dataset_version"] if main_entry else "None",
-            f"Pilot: {pilot_entry['dataset_version'] if pilot_entry else 'None'}",
-            accent_color="#4285F4",
+            "Main Experiment Progress",
+            f"{main_completed:,}/{MAIN_TARGET_CALLS:,}",
+            f"Dataset: {'Approved' if main_approved else 'Pending approval'}",
         )
     with c4:
         render_metric_card(
-            "Total Scenario Families",
-            str(len(main_scenarios)),
-            f"Approval: {main_entry.get('researcher_approval_status', 'N/A') if main_entry else 'N/A'}",
-            accent_color="#34A853"
-            if main_entry and main_entry.get("researcher_approval_status") == "approved"
-            else "#FBBC04",
-        )
-
-    c5, c6, c7, c8 = st.columns(4)
-    with c5:
-        render_metric_card(
-            "Total Completed Calls",
-            str(completed_calls),
-            f"Pilot: {pilot_completed} | Main: {main_completed}",
-            accent_color="#4285F4",
-        )
-    with c6:
-        render_metric_card(
-            "Failed Calls",
-            str(failed_calls),
-            "Logged in append-only JSONL",
-            accent_color="#EA4335" if failed_calls > 0 else "#DADCE0",
-        )
-    with c7:
-        render_metric_card(
             "Annotated Responses",
-            str(annotated_count),
-            f"{len(df_ann)} independent coder entries",
-            accent_color="#34A853",
-        )
-    with c8:
-        pilot_state = load_experiment_state("pilot")
-        main_state = load_experiment_state("main")
-        render_metric_card(
-            "Registered Versions",
-            str(len(reg.get("versions", []))),
-            f"Pilot: {pilot_state.get('status', 'IDLE')} | Main: {main_state.get('status', 'IDLE')}",
+            f"{annotated_count:,}",
+            f"Of {total_completed:,} completed responses" if total_completed > 0 else "No responses recorded yet",
         )
 
-    st.subheader("Research Phase Progress")
-    val_levels = load_validation_state().get("levels", {})
-    validated_lvl_count = sum(1 for v in val_levels.values() if v.get("validated"))
-
-    p1 = validated_lvl_count / 4.0
-    p2 = (
-        1.0
-        if (
-            main_entry
-            and main_entry.get("researcher_approval_status") == "approved"
-            and pilot_entry
-            and pilot_entry.get("researcher_approval_status") == "approved"
-        )
-        else (0.5 if (main_entry or pilot_entry) else 0.0)
+    # Next Step callout
+    next_step = _compute_next_step(
+        api_key_present=api_key_present,
+        api_validated=api_validated,
+        pilot_approved=pilot_approved,
+        main_approved=main_approved,
+        pilot_completed=pilot_completed,
+        pilot_annotated=pilot_annotated,
+        main_completed=main_completed,
+        total_completed=total_completed,
+        annotated_count=annotated_count,
     )
-    p3 = min(1.0, pilot_completed / float(PILOT_TARGET_CALLS))
-    p4 = min(1.0, main_completed / float(MAIN_TARGET_CALLS))
-    p5 = (
-        min(1.0, annotated_count / float(completed_calls))
-        if completed_calls > 0
-        else 0.0
+    st.markdown(
+        f"""
+        <div class="next-step-panel">
+            <div class="next-step-kicker">Next Step</div>
+            <div class="next-step-body">{html.escape(next_step)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    for label, frac in [
-        ("1. Thinking-Level API Verification (4 levels)", p1),
-        ("2. AI Studio Dataset Approval (Pilot & Main)", p2),
-        (f"3. Pilot Experiment Progress ({pilot_completed}/{PILOT_TARGET_CALLS})", p3),
-        (f"4. Main Experiment Progress ({main_completed}/{MAIN_TARGET_CALLS})", p4),
-        (f"5. Human Response Annotation ({annotated_count}/{completed_calls})", p5),
-    ]:
-        st.write(f"**{label}** — {frac * 100:.1f}%")
-        st.progress(frac)
+    st.divider()
+    st.subheader("Research Progress")
 
-    st.subheader("Thinking-Level Availability & Experimental Design")
-    col_l, col_r = st.columns(2)
-    with col_l:
-        lvl_rows = []
-        for lvl in THINKING_LEVELS:
-            info = val_levels.get(lvl, {})
-            lvl_rows.append(
-                {
-                    "Thinking Level": lvl,
-                    "Availability": "Validated" if info.get("validated") else "Not Validated",
-                    "Observed Model Version": info.get("actual_model_version") or "N/A",
-                    "Last Tested (UTC)": info.get("last_tested_utc") or "Never",
-                }
-            )
-        st.dataframe(pd.DataFrame(lvl_rows), use_container_width=True, hide_index=True)
+    # 1. API verification
+    if api_validated:
+        api_step_status = "Completed"
+        api_step_detail = "All four thinking levels (LOW, MEDIUM, HIGH, XHIGH) passed endpoint checks."
+    elif validated_lvl_count > 0 or api_key_present:
+        api_step_status = "In progress" if validated_lvl_count > 0 else "Not started"
+        api_step_detail = f"{validated_lvl_count} of {len(THINKING_LEVELS)} thinking levels verified."
+    else:
+        api_step_status = "Not started"
+        api_step_detail = "Configure GEMINI_API_KEY and verify endpoint support in Settings."
 
-    with col_r:
-        cat_counts = main_entry.get("category_counts", {}) if main_entry else {}
-        design_rows = [
-            {
-                "Category": CATEGORY_LABELS[k],
-                "Main Dataset Count": cat_counts.get(k, 0),
-                "Expected Behavior": (
-                    "Appropriate Refusal" if k == "genuinely_unsafe" else "Safe Completion"
-                ),
-            }
-            for k in CATEGORY_LABELS
-        ]
-        st.dataframe(pd.DataFrame(design_rows), use_container_width=True, hide_index=True)
-        st.caption(
-            f"Modalities: {', '.join(MODALITY_LABELS[m] for m in MODALITIES)} | "
-            "Google AI Studio serves as the exclusive dataset authoring & curation environment."
+    # 2. Dataset approval
+    if pilot_approved and main_approved:
+        ds_status = "Completed"
+        ds_detail = "Both pilot (12 scenarios) and main (60 scenarios) versions are approved."
+    elif pilot_approval == "rejected" or main_approval == "rejected":
+        ds_status = "Blocked"
+        ds_detail = "A dataset version was rejected and requires replacement."
+    elif pilot_entry or main_entry:
+        ds_status = "Pending approval"
+        ds_detail = (
+            f"Pilot ({pilot_entry.get('dataset_version') if pilot_entry else 'None'}): {pilot_approval.replace('_', ' ')} · "
+            f"Main ({main_entry.get('dataset_version') if main_entry else 'None'}): {main_approval.replace('_', ' ')}"
         )
+    else:
+        ds_status = "Not started"
+        ds_detail = "Import pilot and main scenario datasets in Research Runs."
+
+    # 3. Pilot experiment
+    if pilot_completed >= PILOT_TARGET_CALLS:
+        pilot_status = "Completed"
+        pilot_detail = f"{pilot_completed} of {PILOT_TARGET_CALLS} calls completed."
+    elif pilot_completed > 0 or pilot_state.get("status") in ("RUNNING", "PAUSED"):
+        pilot_status = "In progress"
+        pilot_detail = f"{pilot_completed} of {PILOT_TARGET_CALLS} calls completed."
+    elif not api_validated or not pilot_approved:
+        pilot_status = "Blocked"
+        pilot_detail = "Requires API verification and pilot dataset approval."
+    else:
+        pilot_status = "Not started"
+        pilot_detail = "Ready to run 96 pilot calls in Research Runs."
+
+    # 4. Pilot annotation and review
+    if pilot_completed >= PILOT_TARGET_CALLS and pilot_annotated >= pilot_completed and PILOT_REPORT_MD.exists():
+        pilot_rev_status = "Completed"
+        pilot_rev_detail = f"{pilot_annotated} of {pilot_completed} pilot responses annotated."
+    elif pilot_annotated > 0:
+        pilot_rev_status = "In progress"
+        pilot_rev_detail = f"{pilot_annotated} of {pilot_completed} pilot responses annotated."
+    elif pilot_completed == 0:
+        pilot_rev_status = "Blocked"
+        pilot_rev_detail = "Waiting for pilot experiment responses."
+    else:
+        pilot_rev_status = "Not started"
+        pilot_rev_detail = f"{pilot_completed} pilot responses ready for annotation."
+
+    # 5. Main experiment
+    main_readiness = verify_main_experiment_readiness(explicit_approved=False)
+    if main_completed >= MAIN_TARGET_CALLS:
+        main_status = "Completed"
+        main_detail = f"{main_completed:,} of {MAIN_TARGET_CALLS:,} calls completed."
+    elif main_completed > 0 or main_state.get("status") in ("RUNNING", "PAUSED"):
+        main_status = "In progress"
+        main_detail = f"{main_completed:,} of {MAIN_TARGET_CALLS:,} calls completed."
+    elif not all(
+        c["passed"]
+        for c in main_readiness["checks"]
+        if c["check"] != "Explicit Researcher Execution Approval"
+    ):
+        main_status = "Blocked"
+        main_detail = "Requires completed pilot, API verification, and main dataset approval."
+    else:
+        main_status = "Pending approval"
+        main_detail = "Prerequisites met. Requires explicit researcher confirmation in Research Runs."
+
+    # 6. Final analysis
+    stats_ready = STATISTICAL_RESULTS_CSV.exists() and STATISTICAL_RESULTS_CSV.stat().st_size > 10
+    if main_completed >= MAIN_TARGET_CALLS and annotated_count >= main_completed and stats_ready:
+        analysis_status = "Completed"
+        analysis_detail = "Annotated dataset and statistical outputs are generated."
+    elif annotated_count > 0:
+        analysis_status = "In progress"
+        analysis_detail = f"{annotated_count:,} annotated responses available for analysis."
+    else:
+        analysis_status = "Blocked"
+        analysis_detail = "Requires annotated experimental responses."
+
+    steps = [
+        ("API verification", api_step_status, api_step_detail),
+        ("Dataset approval", ds_status, ds_detail),
+        ("Pilot experiment", pilot_status, pilot_detail),
+        ("Pilot annotation and review", pilot_rev_status, pilot_rev_detail),
+        ("Main experiment", main_status, main_detail),
+        ("Final analysis", analysis_status, analysis_detail),
+    ]
+
+    rows_html = "".join(
+        f"""
+        <div class="progress-row">
+            <div>
+                <div class="progress-step-name">{html.escape(name)}</div>
+                <div class="progress-step-detail">{html.escape(detail)}</div>
+            </div>
+            <div class="progress-step-status">{html.escape(status)}</div>
+        </div>
+        """
+        for name, status, detail in steps
+    )
+    st.markdown(rows_html, unsafe_allow_html=True)

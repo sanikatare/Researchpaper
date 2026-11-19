@@ -58,6 +58,7 @@
   "tests/test_integration_e2e.py::test_full_research_pipeline_integration_and_traceability",
   "tests/test_integration_e2e.py::test_separate_pilot_main_manifests_and_pilot_gate",
   "tests/test_integration_e2e.py::test_streamlit_10_pages_and_google_light_theme",
+  "tests/test_integration_e2e.py::test_streamlit_5_pages_and_monochrome_academic_theme",
   "tests/test_metrics.py::test_all_11_metrics_and_groupings",
   "tests/test_metrics.py::test_annotation_adjudication_and_kappa",
   "tests/test_metrics.py::test_empty_robustness_and_power_never_fabricate_robust_or_zero_icc",
@@ -67,5 +68,9 @@
   "tests/test_multimodal_runner.py::test_multimodal_rejects_corrupt_missing_mime_mismatch_and_placeholder_images",
   "tests/test_multimodal_runner.py::test_text_only_has_no_image_and_image_plus_text_attaches_exact_image",
   "tests/test_storage.py::test_append_only_storage_and_resumability_dedup",
-  "tests/test_storage.py::test_config_drift_halts_execution"
+  "tests/test_storage.py::test_config_drift_halts_execution",
+  "tests/test_ui_redesign.py::test_annotation_interface_and_experiment_lab_ui_with_mock_records",
+  "tests/test_ui_redesign.py::test_experiment_lab_chat_flow_research_runs_and_settings_via_apptest",
+  "tests/test_ui_redesign.py::test_exploratory_lab_thinking_level_gating_and_isolation",
+  "tests/test_ui_redesign.py::test_overview_and_annotation_empty_state_via_apptest"
 ]

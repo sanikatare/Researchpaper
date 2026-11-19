@@ -1,31 +1,21 @@
-"""Navigation registry matching Part C light workbench sections."""
+"""Five-section navigation registry for the simplified research workspace."""
 
 from __future__ import annotations
 
 from typing import Callable, Dict
 
 from app.pages import (
-    annotation,
-    api_configuration,
-    dataset_status,
-    export,
-    main_experiment,
+    experiment_lab,
     overview,
-    pilot_experiment,
-    results_dashboard,
-    robustness,
-    statistical_analysis,
+    research_runs,
+    results_analysis,
+    settings,
 )
 
 PAGES: Dict[str, Callable[[], None]] = {
-    "1. Research Overview": overview.render,
-    "2. API Configuration": api_configuration.render,
-    "3. Dataset Status": dataset_status.render,
-    "4. Pilot Experiment": pilot_experiment.render,
-    "5. Main Experiment": main_experiment.render,
-    "6. Response Annotation": annotation.render,
-    "7. Results Dashboard": results_dashboard.render,
-    "8. Statistical Analysis": statistical_analysis.render,
-    "9. Robustness Analysis": robustness.render,
-    "10. Export Results": export.render,
+    "Overview": overview.render,
+    "Experiment Lab": experiment_lab.render,
+    "Research Runs": research_runs.render,
+    "Results & Analysis": results_analysis.render,
+    "Settings": settings.render,
 }

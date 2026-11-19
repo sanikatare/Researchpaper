@@ -193,31 +193,46 @@ def test_full_research_pipeline_integration_and_traceability(tmp_path, monkeypat
     assert trace["zero_duplicate_completed_conditions"] is True
 
 
-def test_streamlit_10_pages_and_google_light_theme() -> None:
+def test_streamlit_5_pages_and_monochrome_academic_theme() -> None:
     from streamlit.testing.v1 import AppTest
 
-    from app.components import GOOGLE_CHART_SEQUENCE, GOOGLE_LIGHT_CSS
+    from app.components import MONOCHROME_ACADEMIC_CSS, MONOCHROME_CHART_SEQUENCE
     from app.navigation import PAGES
-    from config import GOOGLE_COLORS
+    from config import MONOCHROME_COLORS
 
-    # Verify Google Light Theme exact palette & 10 pages
-    assert len(PAGES) == 10
-    palette_blob = GOOGLE_LIGHT_CSS + " " + " ".join(GOOGLE_COLORS.values()) + " " + " ".join(GOOGLE_CHART_SEQUENCE)
-    for hex_code in ("#F8F9FA", "#FFFFFF", "#4285F4", "#EA4335", "#FBBC04", "#34A853", "#202124", "#5F6368", "#DADCE0"):
+    # Verify minimal black-and-white academic palette & 5 sections
+    expected_pages = [
+        "Overview",
+        "Experiment Lab",
+        "Research Runs",
+        "Results & Analysis",
+        "Settings",
+    ]
+    assert list(PAGES.keys()) == expected_pages
+    palette_blob = (
+        MONOCHROME_ACADEMIC_CSS
+        + " "
+        + " ".join(MONOCHROME_COLORS.values())
+        + " "
+        + " ".join(MONOCHROME_CHART_SEQUENCE)
+    )
+    for hex_code in ("#FFFFFF", "#F7F7F5", "#171717", "#737373", "#E5E5E5", "#F3F3F1"):
         assert hex_code in palette_blob
+    assert "Source Serif 4" in MONOCHROME_ACADEMIC_CSS
+    assert "Inter" in MONOCHROME_ACADEMIC_CSS
 
     toml_text = Path(".streamlit/config.toml").read_text(encoding="utf-8")
     assert 'base = "light"' in toml_text
-    assert '#F8F9FA' in toml_text
+    assert '#171717' in toml_text
+    assert '#FFFFFF' in toml_text
 
-    # Render all 10 pages cleanly through Streamlit AppTest
+    # Render all 5 pages cleanly through Streamlit AppTest with 0 trial records
     app_entry = Path(__file__).resolve().parent.parent / "app" / "streamlit_app.py"
     at = AppTest.from_file(str(app_entry), default_timeout=20)
     at.run()
     assert not at.exception
 
-    page_names = list(PAGES.keys())
-    for page_name in page_names:
+    for page_name in expected_pages:
         at.sidebar.radio[0].set_value(page_name).run()
         assert not at.exception, f"Exception on page '{page_name}': {at.exception}"
 

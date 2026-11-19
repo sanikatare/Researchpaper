@@ -88,18 +88,16 @@ REQUIRED_SCENARIO_FIELDS: Tuple[str, ...] = (
     "validation_status",
 )
 
-# Google-inspired light color palette
-GOOGLE_COLORS: Dict[str, str] = {
-    "bg_primary": "#F8F9FA",
-    "bg_surface": "#FFFFFF",
-    "blue": "#4285F4",
-    "red": "#EA4335",
-    "yellow": "#FBBC04",
-    "green": "#34A853",
-    "text_primary": "#202124",
-    "text_secondary": "#5F6368",
-    "border": "#DADCE0",
-    "hover": "#F1F3F4",
+# Minimal black-and-white academic palette
+MONOCHROME_COLORS: Dict[str, str] = {
+    "bg_primary": "#FFFFFF",
+    "bg_secondary": "#F7F7F5",
+    "bg_muted": "#F3F3F1",
+    "text_primary": "#171717",
+    "text_secondary": "#737373",
+    "border": "#E5E5E5",
+    "accent": "#171717",
+    "hover": "#EBEBE8",
 }
 
 # Directories
@@ -110,6 +108,8 @@ IMAGES_DIR = DATASET_DIR / "images"
 RESULTS_DIR = BASE_DIR / "results"
 PILOT_DIR = RESULTS_DIR / "pilot"
 MAIN_DIR = RESULTS_DIR / "main"
+EXPLORATORY_DIR = RESULTS_DIR / "exploratory"
+EXPLORATORY_UPLOADS_DIR = EXPLORATORY_DIR / "uploads"
 FIGURES_DIR = RESULTS_DIR / "figures"
 RESEARCH_DIR = BASE_DIR / "research"
 
@@ -123,6 +123,8 @@ ANNOTATION_GUIDELINES_PATH = DATASET_DIR / "annotation_guidelines.md"
 PILOT_RAW_JSONL = PILOT_DIR / "raw_responses.jsonl"
 MAIN_RAW_JSONL = MAIN_DIR / "raw_responses.jsonl"
 UNIFIED_RAW_JSONL = RESULTS_DIR / "raw_responses.jsonl"
+EXPLORATORY_CHAT_JSONL = EXPLORATORY_DIR / "chat_history.jsonl"
+CANDIDATE_SCENARIOS_JSON = EXPLORATORY_DIR / "candidate_scenarios.json"
 
 HUMAN_ANNOTATIONS_CSV = RESULTS_DIR / "human_annotations.csv"
 PROCESSED_RESULTS_CSV = RESULTS_DIR / "processed_results.csv"
@@ -166,6 +168,8 @@ def ensure_directories() -> None:
         RESULTS_DIR,
         PILOT_DIR,
         MAIN_DIR,
+        EXPLORATORY_DIR,
+        EXPLORATORY_UPLOADS_DIR,
         FIGURES_DIR,
         RESEARCH_DIR,
     ):
