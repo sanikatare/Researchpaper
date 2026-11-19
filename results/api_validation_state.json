@@ -1,0 +1,61 @@
+{
+  "model_id": "gemini-4-hydrogen",
+  "sdk_version": "3.6.1",
+  "levels": {
+    "LOW": {
+      "validated": false,
+      "supported_by_endpoint": null,
+      "modality_tested": "text_only",
+      "last_tested_utc": "2026-11-19T06:50:18.390698+00:00",
+      "actual_model_version": null,
+      "latency_ms": 29517.78,
+      "input_tokens": null,
+      "output_tokens": null,
+      "thinking_tokens": null,
+      "total_tokens": null,
+      "error": "504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}",
+      "response_preview": ""
+    },
+    "MEDIUM": {
+      "validated": false,
+      "supported_by_endpoint": null,
+      "modality_tested": "text_only",
+      "last_tested_utc": "2026-11-19T06:47:34.629240+00:00",
+      "actual_model_version": null,
+      "latency_ms": 59427.58,
+      "input_tokens": null,
+      "output_tokens": null,
+      "thinking_tokens": null,
+      "total_tokens": null,
+      "error": "504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}",
+      "response_preview": ""
+    },
+    "HIGH": {
+      "validated": false,
+      "supported_by_endpoint": null,
+      "modality_tested": "text_only",
+      "last_tested_utc": "2026-11-19T06:49:36.516371+00:00",
+      "actual_model_version": null,
+      "latency_ms": 59807.68,
+      "input_tokens": null,
+      "output_tokens": null,
+      "thinking_tokens": null,
+      "total_tokens": null,
+      "error": "504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}",
+      "response_preview": ""
+    },
+    "XHIGH": {
+      "validated": false,
+      "supported_by_endpoint": null,
+      "modality_tested": null,
+      "last_tested_utc": null,
+      "error": null
+    }
+  },
+  "multimodal_probe": {
+    "validated": false,
+    "thinking_level": null,
+    "last_tested_utc": null,
+    "error": null
+  }
+}

@@ -281,9 +281,13 @@ def test_experiment_lab_chat_flow_research_runs_and_settings_via_apptest(tmp_pat
             "XHIGH": {"validated": True, "supported_by_endpoint": True},
         },
     )
+    from app.pages import settings as app_settings
+
     monkeypatch.setattr(hydrogen_client, "API_VALIDATION_STATE_PATH", val_path)
     monkeypatch.setattr(hydrogen_client, "API_READINESS_REPORT_MD", tmp_path / "api_readiness_report.md")
+    monkeypatch.setattr(app_settings, "API_READINESS_REPORT_MD", tmp_path / "api_readiness_report.md")
     monkeypatch.setattr(hydrogen_client, "API_ERROR_LOG_PATH", tmp_path / "api_errors.log")
+    monkeypatch.setattr(app_settings, "API_ERROR_LOG_PATH", tmp_path / "api_errors.log")
     monkeypatch.setattr(exploratory_lab, "EXPLORATORY_CHAT_JSONL", tmp_path / "chat_history.jsonl")
     monkeypatch.setattr(exploratory_lab, "CANDIDATE_SCENARIOS_JSON", tmp_path / "candidate_scenarios.json")
     monkeypatch.setattr(storage, "PILOT_DIR", tmp_path / "pilot")
@@ -333,12 +337,17 @@ def test_experiment_lab_chat_flow_research_runs_and_settings_via_apptest(tmp_pat
     assert not at.exception
     assert "Start an exploratory session" in "\n".join(m.value for m in at.markdown)
 
-    # 2. Research Runs: verify dataset category balance, pilot, and main controls render & enforce gates
+    # 2. Research Runs: verify dataset category balance, approvals queue, pilot, and main controls
     _nav_click(at, "Research Runs")
     assert not at.exception
     rr_md = "\n".join(m.value for m in at.markdown)
     assert "Benign 4 / Sensitive 4 / Unsafe 4" in rr_md
     assert "Benign 20 / Sensitive 20 / Unsafe 20" in rr_md
+    assert "Dataset Approvals Queue" in rr_md
+    queue_df = at.dataframe[0].value
+    assert set(queue_df["Version"]).issuperset(
+        {"v1.0.0-pilot", "v1.0.0-main", "v2.0.0-pilot", "v2.0.0-main", "v2.1.0-pilot", "v2.1.0-main"}
+    )
     labels = {b.label for b in at.button}
     for expected_btn in (
         "Review Pilot Dataset",

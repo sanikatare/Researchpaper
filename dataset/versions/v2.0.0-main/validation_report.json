@@ -1,0 +1,1057 @@
+{
+  "total_scenarios": 60,
+  "technically_valid_count": 60,
+  "category_counts": {
+    "clearly_benign": 20,
+    "sensitive_looking_legitimate": 20,
+    "genuinely_unsafe": 20
+  },
+  "modality_coverage": {
+    "text_only_count": 60,
+    "image_plus_text_count": 60
+  },
+  "duplicates": {
+    "duplicate_ids": [],
+    "duplicate_prompts": [],
+    "duplicate_titles": [],
+    "near_duplicates": []
+  },
+  "scope_issues": [],
+  "dataset_valid": true,
+  "validation_status": "valid",
+  "overall_classification": "NEEDS HUMAN REVIEW",
+  "classification_counts": {
+    "PASS": 0,
+    "FAIL": 0,
+    "NEEDS HUMAN REVIEW": 60
+  },
+  "checks_matrix": [
+    {
+      "check": "Total scenario families (60 expected)",
+      "status": "PASS",
+      "details": "Found 60 scenario families."
+    },
+    {
+      "check": "Balanced categories (20 per category)",
+      "status": "PASS",
+      "details": "Counts: {'clearly_benign': 20, 'sensitive_looking_legitimate': 20, 'genuinely_unsafe': 20}"
+    },
+    {
+      "check": "Unique scenario IDs",
+      "status": "PASS",
+      "details": "All scenario_id values unique."
+    },
+    {
+      "check": "Both modalities present & distinct",
+      "status": "PASS",
+      "details": "Both text_only and image_text prompts verified."
+    },
+    {
+      "check": "Semantic matching between modalities",
+      "status": "PASS",
+      "details": "All scenario pairs aligned."
+    },
+    {
+      "check": "Image file availability & decoding",
+      "status": "PASS",
+      "details": "All referenced images present and readable."
+    },
+    {
+      "check": "Image provenance fields",
+      "status": "PASS",
+      "details": "All scenarios include image provenance."
+    },
+    {
+      "check": "Expected behavior & classification fields",
+      "status": "PASS",
+      "details": "Expected behavior, classification, and rationale complete & consistent."
+    },
+    {
+      "check": "Duplicate & near-duplicate scenarios",
+      "status": "PASS",
+      "details": "No duplicates or near-duplicates detected."
+    },
+    {
+      "check": "Missing or placeholder values",
+      "status": "PASS",
+      "details": "No missing or placeholder values."
+    },
+    {
+      "check": "Law-related content exclusion",
+      "status": "PASS",
+      "details": "Zero law-related terms detected."
+    },
+    {
+      "check": "Unsafe operational details exclusion",
+      "status": "PASS",
+      "details": "Zero operational harm blueprints detected."
+    },
+    {
+      "check": "Human researcher review & sign-off",
+      "status": "NEEDS HUMAN REVIEW",
+      "details": "Pending explicit human researcher review (never auto-approved)."
+    }
+  ],
+  "per_scenario": [
+    {
+      "scenario_id": "SCN-101",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-102",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-103",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-104",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-105",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-106",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-107",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-108",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-109",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-110",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-111",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-112",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-113",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-114",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-115",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-116",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-117",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-118",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-119",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-120",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-121",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-122",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-123",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-124",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-125",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-126",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-127",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-128",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-129",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-130",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-131",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-132",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-133",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-134",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-135",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-136",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-137",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-138",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-139",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-140",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-141",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-142",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-143",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-144",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-145",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-146",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-147",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-148",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-149",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-150",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-151",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-152",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-153",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-154",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-155",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-156",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-157",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-158",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-159",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    },
+    {
+      "scenario_id": "SCN-160",
+      "technical_valid": true,
+      "validation_status": "passed",
+      "report_classification": "NEEDS HUMAN REVIEW",
+      "semantic_match": {
+        "status": "PASS",
+        "overlap_ratio": 1.0,
+        "reason": "Topical overlap verified (1.00) with visual reference cue."
+      },
+      "image_status": "Valid (840x500)",
+      "issues": [],
+      "review_warnings": [
+        "Scenario is awaiting explicit human researcher review/approval."
+      ]
+    }
+  ]
+}

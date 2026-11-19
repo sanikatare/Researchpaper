@@ -43,6 +43,7 @@
   "tests/test_dataset.py::test_immutable_versions_and_approved_sha256_integrity",
   "tests/test_dataset.py::test_law_exclusion_and_duplicate_detection",
   "tests/test_dataset.py::test_law_exclusion_detector",
+  "tests/test_dataset.py::test_opensource_benchmark_versions_registered_and_pending_approval",
   "tests/test_dataset.py::test_per_scenario_review_preserves_sha256_and_blocks_rejected_approval",
   "tests/test_dataset.py::test_scenarios_are_not_auto_approved",
   "tests/test_dataset.py::test_validation_report_pass_fail_needs_review_and_no_silent_correction",

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import html
 import sys
 from pathlib import Path
 
@@ -15,28 +14,19 @@ import streamlit as st
 from app.components import inject_theme_css
 from app.navigation import PAGES
 from config import ensure_directories
-from experiment.hydrogen_client import get_api_key, is_api_fully_validated
 
 
 def _render_top_navbar(active_page: str) -> str:
     """Render solid black top navigation bar and return selected page."""
-    api_ok = is_api_fully_validated()
-    key_set = bool(get_api_key())
-    api_label = (
-        "API: Verified (4/4)"
-        if api_ok
-        else ("API: Unverified" if key_set else "API: Not Connected")
-    )
-
     with st.container(key="top_navbar"):
-        nav_l, nav_c, nav_r = st.columns([1.9, 5.6, 1.5], vertical_alignment="center")
+        nav_l, nav_c = st.columns([2.2, 6.8], vertical_alignment="center")
         with nav_l:
             st.markdown(
                 '<div class="navbar-brand">Gemini 4 Hydrogen</div>',
                 unsafe_allow_html=True,
             )
         with nav_c:
-            with st.container(horizontal=True, gap="small", horizontal_alignment="center"):
+            with st.container(horizontal=True, gap="small", horizontal_alignment="right"):
                 for page_name in PAGES:
                     is_active = page_name == active_page
                     if st.button(
@@ -47,11 +37,6 @@ def _render_top_navbar(active_page: str) -> str:
                         if not is_active:
                             st.session_state["active_page"] = page_name
                             st.rerun()
-        with nav_r:
-            st.markdown(
-                f'<div class="navbar-status">{html.escape(api_label)}</div>',
-                unsafe_allow_html=True,
-            )
 
     return st.session_state.get("active_page", active_page)
 

@@ -1,0 +1,69 @@
+{
+  "fetched_at_utc": "2026-11-19T06:37:44.144169+00:00",
+  "sources": [
+    {
+      "source_key": "xstest",
+      "name": "XSTest (Röttger et al., NAACL 2024)",
+      "url": "https://raw.githubusercontent.com/paul-rottger/xstest/main/xstest_prompts.csv",
+      "license": "MIT",
+      "local_file": "dataset/external_sources/xstest_prompts.csv",
+      "size_bytes": 38719
+    },
+    {
+      "source_key": "or_bench_hard",
+      "name": "OR-Bench-Hard-1K (Cui et al., 2024)",
+      "url": "https://huggingface.co/datasets/bench-llm/or-bench/resolve/main/or-bench-hard-1k.csv",
+      "license": "Apache-2.0",
+      "local_file": "dataset/external_sources/or_bench_hard_1k.csv",
+      "size_bytes": 169255
+    },
+    {
+      "source_key": "or_bench_toxic",
+      "name": "OR-Bench-Toxic (Cui et al., 2024)",
+      "url": "https://huggingface.co/datasets/bench-llm/or-bench/resolve/main/or-bench-toxic.csv",
+      "license": "Apache-2.0",
+      "local_file": "dataset/external_sources/or_bench_toxic.csv",
+      "size_bytes": 64721
+    },
+    {
+      "source_key": "strongreject",
+      "name": "StrongREJECT (Souly et al., NeurIPS 2024)",
+      "url": "https://raw.githubusercontent.com/alexandrasouly/strongreject/main/strongreject_dataset/strongreject_dataset.csv",
+      "license": "MIT",
+      "local_file": "dataset/external_sources/strongreject_dataset.csv",
+      "size_bytes": 56359
+    },
+    {
+      "source_key": "figstep",
+      "name": "FigStep SafeBench (Gong et al., 2023)",
+      "url": "https://raw.githubusercontent.com/ThuCCSLab/FigStep/main/data/question/safebench.csv",
+      "license": "MIT",
+      "local_file": "dataset/external_sources/figstep_safebench.csv",
+      "size_bytes": 78942
+    },
+    {
+      "source_key": "jbb_harmful",
+      "name": "JailbreakBench JBB-Behaviors (Chao et al., NeurIPS 2024)",
+      "url": "https://datasets-server.huggingface.co/rows?dataset=JailbreakBench/JBB-Behaviors&config=behaviors&split=harmful&offset=0&length=100",
+      "license": "MIT",
+      "local_file": "dataset/external_sources/jbb_harmful.json",
+      "size_bytes": 34283
+    },
+    {
+      "source_key": "dolly_15k",
+      "name": "Databricks Dolly-15k (open_qa / general_qa / brainstorming)",
+      "url": "https://datasets-server.huggingface.co/rows?dataset=databricks/databricks-dolly-15k&config=default&split=train&offset=0&length=100",
+      "license": "CC BY-SA 3.0",
+      "local_file": "dataset/external_sources/dolly_15k_page1.json",
+      "size_bytes": 99022
+    },
+    {
+      "source_key": "dolly_15k_p2",
+      "name": "Databricks Dolly-15k (page 2)",
+      "url": "https://datasets-server.huggingface.co/rows?dataset=databricks/databricks-dolly-15k&config=default&split=train&offset=100&length=100",
+      "license": "CC BY-SA 3.0",
+      "local_file": "dataset/external_sources/dolly_15k_page2.json",
+      "size_bytes": 77181
+    }
+  ]
+}

@@ -118,7 +118,29 @@ def _render_dataset_section() -> None:
     if "rr_review_scope" not in st.session_state:
         st.session_state.rr_review_scope = "pilot"
 
-    b_p, b_m, b_sp = st.columns([1.2, 1.2, 2])
+    if versions:
+        st.markdown("**Dataset Approvals Queue**")
+        queue_rows = []
+        active_p = registry.get("active_pilot_version")
+        active_m = registry.get("active_main_version")
+        for v in versions:
+            vid = v["dataset_version"]
+            is_act = vid == active_p or vid == active_m
+            queue_rows.append(
+                {
+                    "Version": vid,
+                    "Dataset Name": v.get("dataset_name", ""),
+                    "Scope": str(v.get("dataset_scope", "")).title(),
+                    "Scenarios": v.get("scenario_count", 0),
+                    "Validation": str(v.get("technical_validation_status", "")).upper(),
+                    "Approval": _format_approval(v.get("researcher_approval_status")),
+                    "Active": "Active" if is_act else "—",
+                    "Source": v.get("dataset_source", ""),
+                }
+            )
+        st.dataframe(pd.DataFrame(queue_rows), use_container_width=True, hide_index=True)
+
+    b_p, b_m, b_sel = st.columns([1.0, 1.0, 2.2], vertical_alignment="bottom")
     with b_p:
         if st.button(
             "Review Pilot Dataset",
@@ -137,12 +159,38 @@ def _render_dataset_section() -> None:
             st.rerun()
 
     scope = st.session_state.rr_review_scope
+    scope_versions = [v for v in versions if v.get("dataset_scope") == scope]
     active_entry = pilot_entry if scope == "pilot" else main_entry
-    if active_entry is None:
-        st.info(f"No active {scope} dataset version is selected.")
+    active_ver_id = active_entry["dataset_version"] if active_entry else None
+
+    if not scope_versions:
+        st.info(f"No {scope} dataset versions are registered.")
         return
 
-    ver_id = active_entry["dataset_version"]
+    scope_ver_ids = [v["dataset_version"] for v in scope_versions]
+    default_idx = scope_ver_ids.index(active_ver_id) if active_ver_id in scope_ver_ids else 0
+    with b_sel:
+        selected_ver_id = st.selectbox(
+            f"Select {scope.title()} version for inspection & approval",
+            options=scope_ver_ids,
+            index=default_idx,
+            format_func=lambda vid: next(
+                (
+                    f"{v['dataset_version']} — {v.get('dataset_name', '')} ({_format_approval(v.get('researcher_approval_status'))})"
+                    for v in scope_versions
+                    if v["dataset_version"] == vid
+                ),
+                vid,
+            ),
+            key=f"rr_inspect_ver_{scope}",
+        )
+
+    selected_entry = get_version_entry(selected_ver_id)
+    if selected_entry is None:
+        st.info(f"Selected {scope} dataset version was not found.")
+        return
+
+    ver_id = selected_entry["dataset_version"]
     scenarios = load_scenarios_for_version(ver_id)
     integrity = verify_version_integrity(ver_id)
     review_log = load_review_log(ver_id)
@@ -153,19 +201,34 @@ def _render_dataset_section() -> None:
     approved_scen_count = sum(
         1 for r in scenario_reviews.values() if r.get("decision") == "approved"
     )
-    is_approved = active_entry.get("researcher_approval_status") == "approved"
+    is_approved = selected_entry.get("researcher_approval_status") == "approved"
     val_rep = validate_dataset(scenarios, expected_scope=scope, dataset_approved=is_approved)
 
     cat_counts = val_rep.get("category_counts", {})
-    st.markdown(
-        f"**Inspecting {scope.title()} Version:** `{ver_id}` · "
-        f"Technical validation: `{val_rep['validation_status']}` · "
-        f"Approval: `{_format_approval(active_entry.get('researcher_approval_status'))}` · "
-        f"Categories: {cat_counts.get('clearly_benign', 0)} benign / "
-        f"{cat_counts.get('sensitive_looking_legitimate', 0)} sensitive / "
-        f"{cat_counts.get('genuinely_unsafe', 0)} unsafe · "
-        f"Per-scenario reviews: {approved_scen_count} approved, {rejected_count} rejected"
-    )
+    insp_l, insp_r = st.columns([3.2, 1.2], vertical_alignment="center")
+    with insp_l:
+        st.markdown(
+            f"**Inspecting {scope.title()} Version:** `{ver_id}` ({selected_entry.get('dataset_name', '')}) · "
+            f"Source: {selected_entry.get('dataset_source', 'Local')} · "
+            f"Technical validation: `{val_rep['validation_status']}` · "
+            f"Approval: `{_format_approval(selected_entry.get('researcher_approval_status'))}` · "
+            f"Categories: {cat_counts.get('clearly_benign', 0)} benign / "
+            f"{cat_counts.get('sensitive_looking_legitimate', 0)} sensitive / "
+            f"{cat_counts.get('genuinely_unsafe', 0)} unsafe · "
+            f"Per-scenario reviews: {approved_scen_count} approved, {rejected_count} rejected"
+        )
+    with insp_r:
+        is_currently_active = ver_id == active_ver_id
+        if is_currently_active:
+            st.caption(f"Currently active {scope} version")
+        else:
+            if st.button(
+                f"Set {ver_id} Active",
+                key=f"rr_activate_{scope}_{ver_id}",
+                use_container_width=True,
+            ):
+                set_active_version(scope, ver_id)
+                st.rerun()
 
     with st.expander("Validation Checks Summary (Schema, Matching, Exclusions & Signoff)", expanded=False):
         checks_rows = val_rep.get("checks_matrix", [])
@@ -211,9 +274,14 @@ def _render_dataset_section() -> None:
             left_col, right_col = st.columns([1.45, 1])
             with left_col:
                 st.markdown(f"**{scen['scenario_id']} — {scen['scenario_title']}**")
+                src_note = (
+                    f" · Benchmark: {scen['source_benchmark']} ({scen.get('source_license', 'Open Source')})"
+                    if scen.get("source_benchmark")
+                    else ""
+                )
                 st.caption(
                     f"Category: {CATEGORY_LABELS.get(scen['category'], scen['category'])} · "
-                    f"Expected classification: {scen['expected_response_classification']}"
+                    f"Expected classification: {scen['expected_response_classification']}{src_note}"
                 )
                 st.markdown("**Text-only prompt**")
                 st.write(scen["text_only_prompt"])
@@ -248,7 +316,7 @@ def _render_dataset_section() -> None:
 
     # Explicit Researcher Approval & Per-Scenario Signoff
     with st.container(border=True):
-        st.markdown("**Researcher Approval**")
+        st.markdown(f"**Researcher Approval — `{ver_id}`**")
         app_c1, app_c2 = st.columns([1.5, 2])
         with app_c1:
             reviewer_id = st.text_input(
@@ -312,7 +380,7 @@ def _render_dataset_section() -> None:
             )
 
         can_approve = (
-            active_entry["technical_validation_status"] == "valid"
+            selected_entry["technical_validation_status"] == "valid"
             and integrity["intact"]
             and rejected_count == 0
             and has_rev
@@ -338,7 +406,7 @@ def _render_dataset_section() -> None:
         with ab2:
             if st.button(
                 "Revoke Approval",
-                disabled=active_entry.get("researcher_approval_status") == "pending_review",
+                disabled=selected_entry.get("researcher_approval_status") == "pending_review",
                 key=f"rr_revoke_ds_{ver_id}",
                 use_container_width=True,
             ):

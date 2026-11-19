@@ -292,3 +292,33 @@ def test_per_scenario_review_preserves_sha256_and_blocks_rejected_approval(tmp_p
     assert approved["approved_sha256"] == orig_sha
 
 
+def test_opensource_benchmark_versions_registered_and_pending_approval() -> None:
+    reg = load_registry()
+    by_ver = {v["dataset_version"]: v for v in reg.get("versions", [])}
+
+    for ver_id, scope, expected_n in (
+        ("v2.0.0-pilot", "pilot", 12),
+        ("v2.0.0-main", "main", 60),
+        ("v2.1.0-pilot", "pilot", 12),
+        ("v2.1.0-main", "main", 60),
+    ):
+        assert ver_id in by_ver, f"Missing open-source version {ver_id}"
+        entry = by_ver[ver_id]
+        assert entry["dataset_scope"] == scope
+        assert entry["scenario_count"] == expected_n
+        assert entry["technical_validation_status"] == "valid"
+        assert entry["researcher_approval_status"] == "pending_review"
+        assert scenario_manager.verify_version_integrity(ver_id)["intact"] is True
+
+        scens = scenario_manager.load_scenarios_for_version(ver_id)
+        assert len(scens) == expected_n
+        val = validate_dataset(scens, expected_scope=scope, dataset_approved=False)
+        assert val["dataset_valid"] is True
+        assert val["classification_counts"]["FAIL"] == 0
+        for s in scens:
+            ok, msg = check_image_valid(s["image_asset_reference"])
+            assert ok, f"{ver_id}/{s['scenario_id']} invalid image: {msg}"
+            assert s.get("source_benchmark"), f"{ver_id}/{s['scenario_id']} missing source attribution"
+
+
+

@@ -67,6 +67,142 @@
       "scope_issues": [],
       "researcher_approval_status": "pending_review",
       "approved_at_utc": null
+    },
+    {
+      "dataset_name": "OpenSource-SafetySuite-Pilot",
+      "dataset_version": "v2.0.0-pilot",
+      "dataset_scope": "pilot",
+      "dataset_source": "Open-Source Benchmarks (Dolly-15k, XSTest, OR-Bench, JailbreakBench, StrongREJECT)",
+      "import_date_utc": "2026-11-19T06:38:54.169282+00:00",
+      "file_reference": "dataset/versions/v2.0.0-pilot/scenarios.json",
+      "jsonl_reference": "dataset/versions/v2.0.0-pilot/scenarios.jsonl",
+      "sha256": "f02d557192aa08289d45bf478b46fa8f07b1cc0c84216a6b73238cb562cbc85d",
+      "jsonl_sha256": "f505de851115a79db16f0b2fbd219539ca15c6e3f74f6d9c944681ce3bf40fbb",
+      "approved_sha256": null,
+      "scenario_count": 12,
+      "technically_valid_count": 12,
+      "category_counts": {
+        "clearly_benign": 4,
+        "sensitive_looking_legitimate": 4,
+        "genuinely_unsafe": 4
+      },
+      "modality_coverage": {
+        "text_only_count": 12,
+        "image_plus_text_count": 12
+      },
+      "technical_validation_status": "valid",
+      "overall_report_classification": "NEEDS HUMAN REVIEW",
+      "classification_counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "NEEDS HUMAN REVIEW": 12
+      },
+      "scope_issues": [],
+      "researcher_approval_status": "pending_review",
+      "reviewer_id": null,
+      "approved_at_utc": null
+    },
+    {
+      "dataset_name": "OpenSource-SafetySuite-Main",
+      "dataset_version": "v2.0.0-main",
+      "dataset_scope": "main",
+      "dataset_source": "Open-Source Benchmarks (Dolly-15k, XSTest, OR-Bench, JailbreakBench, StrongREJECT)",
+      "import_date_utc": "2026-11-19T06:38:55.643348+00:00",
+      "file_reference": "dataset/versions/v2.0.0-main/scenarios.json",
+      "jsonl_reference": "dataset/versions/v2.0.0-main/scenarios.jsonl",
+      "sha256": "1ea1af397c1f1e8dfd30d4e2800bcd15fe2e5dc93bed5617b86636e000579012",
+      "jsonl_sha256": "d001e1cdf96f49ecd2b6036d3c88fa4f39bfe659c0d4212b854673fe278d3e1e",
+      "approved_sha256": null,
+      "scenario_count": 60,
+      "technically_valid_count": 60,
+      "category_counts": {
+        "clearly_benign": 20,
+        "sensitive_looking_legitimate": 20,
+        "genuinely_unsafe": 20
+      },
+      "modality_coverage": {
+        "text_only_count": 60,
+        "image_plus_text_count": 60
+      },
+      "technical_validation_status": "valid",
+      "overall_report_classification": "NEEDS HUMAN REVIEW",
+      "classification_counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "NEEDS HUMAN REVIEW": 60
+      },
+      "scope_issues": [],
+      "researcher_approval_status": "pending_review",
+      "reviewer_id": null,
+      "approved_at_utc": null
+    },
+    {
+      "dataset_name": "OpenSource-ContrastSuite-Pilot",
+      "dataset_version": "v2.1.0-pilot",
+      "dataset_scope": "pilot",
+      "dataset_source": "Open-Source Benchmarks (Dolly-15k, XSTest Contrast, OR-Bench, FigStep SafeBench)",
+      "import_date_utc": "2026-11-19T06:38:55.702126+00:00",
+      "file_reference": "dataset/versions/v2.1.0-pilot/scenarios.json",
+      "jsonl_reference": "dataset/versions/v2.1.0-pilot/scenarios.jsonl",
+      "sha256": "6900da6651ea8137e9b7291e4f137be1285aff1d2d5f45104b55c34dbbcf080d",
+      "jsonl_sha256": "2966be59f6a8b0598004aaaa9f9d76fd4a81e683cf4c057c09d807a9ded98930",
+      "approved_sha256": null,
+      "scenario_count": 12,
+      "technically_valid_count": 12,
+      "category_counts": {
+        "clearly_benign": 4,
+        "sensitive_looking_legitimate": 4,
+        "genuinely_unsafe": 4
+      },
+      "modality_coverage": {
+        "text_only_count": 12,
+        "image_plus_text_count": 12
+      },
+      "technical_validation_status": "valid",
+      "overall_report_classification": "NEEDS HUMAN REVIEW",
+      "classification_counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "NEEDS HUMAN REVIEW": 12
+      },
+      "scope_issues": [],
+      "researcher_approval_status": "pending_review",
+      "reviewer_id": null,
+      "approved_at_utc": null
+    },
+    {
+      "dataset_name": "OpenSource-ContrastSuite-Main",
+      "dataset_version": "v2.1.0-main",
+      "dataset_scope": "main",
+      "dataset_source": "Open-Source Benchmarks (Dolly-15k, XSTest Contrast, OR-Bench, FigStep SafeBench)",
+      "import_date_utc": "2026-11-19T06:38:56.879852+00:00",
+      "file_reference": "dataset/versions/v2.1.0-main/scenarios.json",
+      "jsonl_reference": "dataset/versions/v2.1.0-main/scenarios.jsonl",
+      "sha256": "52f98e56049c9c6979d8f20cee5d279c5820f633bf79bcb8e1cf286d906899e9",
+      "jsonl_sha256": "d7b1a461142d1e19f01e0bdca9ee948e3721d912629c790e536dd12907327a24",
+      "approved_sha256": null,
+      "scenario_count": 60,
+      "technically_valid_count": 60,
+      "category_counts": {
+        "clearly_benign": 20,
+        "sensitive_looking_legitimate": 20,
+        "genuinely_unsafe": 20
+      },
+      "modality_coverage": {
+        "text_only_count": 60,
+        "image_plus_text_count": 60
+      },
+      "technical_validation_status": "valid",
+      "overall_report_classification": "NEEDS HUMAN REVIEW",
+      "classification_counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "NEEDS HUMAN REVIEW": 60
+      },
+      "scope_issues": [],
+      "researcher_approval_status": "pending_review",
+      "reviewer_id": null,
+      "approved_at_utc": null
     }
   ]
 }
