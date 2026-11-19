@@ -1,4 +1,4 @@
-"""Minimal black-and-white academic styling, typography, and reusable research UI helpers."""
+"""Minimal black-and-white academic styling, black top navbar CSS, and reusable UI helpers."""
 
 from __future__ import annotations
 
@@ -20,12 +20,22 @@ MONOCHROME_ACADEMIC_CSS = """
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
+    /* Hide default Streamlit sidebar & header chrome so the black top navbar leads the app */
+    section[data-testid="stSidebar"],
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
+    header[data-testid="stHeader"],
+    #MainMenu,
+    footer {
+        display: none !important;
+    }
+
     .main .block-container {
-        max-width: 1080px;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-        padding-left: 2.25rem;
-        padding-right: 2.25rem;
+        max-width: 1120px;
+        padding-top: 0 !important;
+        padding-bottom: 3.5rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
     }
 
     h1, h2, h3, .research-title, .serif-heading {
@@ -39,37 +49,79 @@ MONOCHROME_ACADEMIC_CSS = """
         color: #171717;
     }
 
-    /* Sidebar Navigation */
-    section[data-testid="stSidebar"] {
-        background-color: #F7F7F5;
-        border-right: 1px solid #E5E5E5;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #171717;
-    }
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
-        padding: 0.55rem 0.8rem;
-        border-radius: 6px;
-        margin-bottom: 4px;
-        border: 1px solid transparent;
-        transition: background-color 0.14s ease, border-color 0.14s ease;
-    }
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:hover {
-        background-color: #F3F3F1;
-    }
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:has(input:checked) {
-        background-color: #171717;
-        border-color: #171717;
-    }
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:has(input:checked) p {
+    /* Full-Bleed Solid Black Top Navbar */
+    .st-key-top_navbar {
+        background-color: #111111 !important;
         color: #FFFFFF !important;
-        font-weight: 500 !important;
+        box-shadow: 0 0 0 100vmax #111111;
+        clip-path: inset(0 -100vmax);
+        padding: 0.75rem 0 0.75rem 0 !important;
+        margin-bottom: 2rem !important;
+        border-bottom: 1px solid #262626;
     }
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] input[type="radio"] {
-        display: none;
+    .st-key-top_navbar p,
+    .st-key-top_navbar span,
+    .st-key-top_navbar div {
+        color: #FFFFFF;
+    }
+    .navbar-brand {
+        font-family: 'Source Serif 4', 'Libre Baskerville', Georgia, serif;
+        font-size: 1.12rem;
+        font-weight: 600;
+        color: #FFFFFF !important;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+    .navbar-status {
+        text-align: right;
+        font-size: 0.8rem;
+        color: #D4D4D4 !important;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
     }
 
-    /* Primary & Secondary Buttons */
+    /* Navbar Navigation Buttons */
+    .st-key-top_navbar .stButton > button[kind="secondary"] {
+        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        color: #BDBDBD !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        padding: 0.36rem 0.72rem !important;
+        border-radius: 6px !important;
+        white-space: nowrap !important;
+        min-height: 0 !important;
+    }
+    .st-key-top_navbar .stButton > button[kind="secondary"]:hover {
+        background-color: #262626 !important;
+        color: #FFFFFF !important;
+        border-color: #262626 !important;
+    }
+    .st-key-top_navbar .stButton > button[kind="primary"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #FFFFFF !important;
+        color: #111111 !important;
+        font-size: 0.875rem !important;
+        font-weight: 600 !important;
+        padding: 0.36rem 0.72rem !important;
+        border-radius: 6px !important;
+        white-space: nowrap !important;
+        min-height: 0 !important;
+    }
+    .st-key-top_navbar .stButton > button[kind="primary"]:hover {
+        background-color: #F3F3F1 !important;
+        border-color: #F3F3F1 !important;
+        color: #111111 !important;
+    }
+    .st-key-top_navbar .stButton > button[kind="primary"] p {
+        color: #111111 !important;
+    }
+    .st-key-top_navbar .stButton > button[kind="secondary"] p {
+        color: inherit !important;
+    }
+
+    /* Primary & Secondary Page Buttons */
     .stButton > button[kind="primary"],
     .stFormSubmitButton > button[kind="primary"] {
         background-color: #171717 !important;
@@ -78,6 +130,10 @@ MONOCHROME_ACADEMIC_CSS = """
         border-radius: 6px;
         font-weight: 500;
         transition: background-color 0.15s ease;
+    }
+    .stButton > button[kind="primary"] p,
+    .stFormSubmitButton > button[kind="primary"] p {
+        color: #FFFFFF !important;
     }
     .stButton > button[kind="primary"]:hover,
     .stFormSubmitButton > button[kind="primary"]:hover {
@@ -89,6 +145,10 @@ MONOCHROME_ACADEMIC_CSS = """
     .stFormSubmitButton > button[kind="primary"]:disabled {
         background-color: #E5E5E5 !important;
         border-color: #E5E5E5 !important;
+        color: #737373 !important;
+    }
+    .stButton > button[kind="primary"]:disabled p,
+    .stFormSubmitButton > button[kind="primary"]:disabled p {
         color: #737373 !important;
     }
 
@@ -142,7 +202,7 @@ MONOCHROME_ACADEMIC_CSS = """
         border-radius: 6px !important;
     }
 
-    /* Neutral Alerts (remove bright colors) */
+    /* Neutral Alerts */
     div[data-testid="stAlert"] {
         background-color: #F7F7F5 !important;
         border: 1px solid #E5E5E5 !important;
@@ -156,11 +216,11 @@ MONOCHROME_ACADEMIC_CSS = """
     /* Page Header */
     .research-header {
         border-bottom: 1px solid #E5E5E5;
-        padding-bottom: 1.1rem;
-        margin-bottom: 1.75rem;
+        padding-bottom: 1.05rem;
+        margin-bottom: 1.6rem;
     }
     .research-title {
-        font-size: 2rem;
+        font-size: 1.95rem;
         font-weight: 600;
         color: #171717;
         line-height: 1.2;
@@ -171,7 +231,7 @@ MONOCHROME_ACADEMIC_CSS = """
         color: #737373;
         margin-top: 0.45rem;
         line-height: 1.5;
-        max-width: 68ch;
+        max-width: 72ch;
     }
 
     /* Clean Stat Strip */
@@ -189,7 +249,7 @@ MONOCHROME_ACADEMIC_CSS = """
         margin-bottom: 0.35rem;
     }
     .stat-value {
-        font-size: 1.4rem;
+        font-size: 1.38rem;
         font-weight: 600;
         color: #171717;
         font-variant-numeric: tabular-nums;
@@ -200,6 +260,27 @@ MONOCHROME_ACADEMIC_CSS = """
         color: #737373;
         margin-top: 0.3rem;
         line-height: 1.4;
+    }
+
+    /* Study Architecture Cards */
+    .study-pillar {
+        background-color: #FFFFFF;
+        border: 1px solid #E5E5E5;
+        border-radius: 8px;
+        padding: 1.05rem 1.15rem;
+        height: 100%;
+    }
+    .study-pillar-title {
+        font-family: 'Source Serif 4', 'Libre Baskerville', Georgia, serif;
+        font-size: 1.02rem;
+        font-weight: 600;
+        color: #171717;
+        margin-bottom: 0.35rem;
+    }
+    .study-pillar-body {
+        font-size: 0.87rem;
+        color: #737373;
+        line-height: 1.5;
     }
 
     /* Progress Step List */
@@ -237,14 +318,15 @@ MONOCHROME_ACADEMIC_CSS = """
         background-color: #F7F7F5;
         border: 1px solid #E5E5E5;
         border-radius: 8px;
-        padding: 1.1rem 1.25rem;
-        margin-top: 1.25rem;
+        padding: 1.05rem 1.25rem;
+        margin-top: 1rem;
+        margin-bottom: 0.75rem;
     }
     .next-step-kicker {
         font-size: 0.78rem;
         font-weight: 600;
         color: #737373;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.25rem;
     }
     .next-step-body {
         font-size: 0.98rem;
@@ -319,21 +401,21 @@ MONOCHROME_ACADEMIC_CSS = """
         background-color: #F7F7F5;
         border: 1px solid #E5E5E5;
         border-radius: 8px;
-        padding: 2rem 1.5rem;
-        margin: 1rem 0;
+        padding: 1.85rem 1.5rem;
+        margin: 0.85rem 0;
     }
     .empty-state-title {
         font-family: 'Source Serif 4', 'Libre Baskerville', Georgia, serif;
-        font-size: 1.2rem;
+        font-size: 1.18rem;
         font-weight: 600;
         color: #171717;
         margin-bottom: 0.4rem;
     }
     .empty-state-desc {
-        font-size: 0.93rem;
+        font-size: 0.92rem;
         color: #737373;
         line-height: 1.55;
-        max-width: 62ch;
+        max-width: 66ch;
     }
 
     /* Progress Bar Monochrome */
@@ -347,16 +429,22 @@ MONOCHROME_ACADEMIC_CSS = """
     /* Hairline Section Divider */
     hr {
         border-color: #E5E5E5 !important;
-        margin-top: 1.5rem !important;
-        margin-bottom: 1.5rem !important;
+        margin-top: 1.4rem !important;
+        margin-bottom: 1.4rem !important;
     }
 </style>
 """
 
 
 def inject_theme_css() -> None:
-    """Apply minimal black-and-white academic CSS once per render."""
+    """Apply minimal black-and-white academic CSS and black top navbar styling."""
     st.markdown(MONOCHROME_ACADEMIC_CSS, unsafe_allow_html=True)
+
+
+def navigate_to(page_name: str) -> None:
+    """Switch active top-navbar page cleanly and trigger a rerun."""
+    st.session_state["active_page"] = page_name
+    st.rerun()
 
 
 def render_page_header(title: str, subtitle: str = "") -> None:
@@ -386,6 +474,19 @@ def render_metric_card(
             <div class="stat-label">{safe_label}</div>
             <div class="stat-value">{safe_value}</div>
             {sub_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_study_pillar(title: str, body: str) -> None:
+    """Render concise editorial card explaining one pillar of the research project."""
+    st.markdown(
+        f"""
+        <div class="study-pillar">
+            <div class="study-pillar-title">{html.escape(title)}</div>
+            <div class="study-pillar-body">{html.escape(body)}</div>
         </div>
         """,
         unsafe_allow_html=True,

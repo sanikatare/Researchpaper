@@ -200,7 +200,7 @@ def test_streamlit_5_pages_and_monochrome_academic_theme() -> None:
     from app.navigation import PAGES
     from config import MONOCHROME_COLORS
 
-    # Verify minimal black-and-white academic palette & 5 sections
+    # Verify minimal black-and-white academic palette, black top navbar CSS & 5 sections
     expected_pages = [
         "Overview",
         "Experiment Lab",
@@ -216,8 +216,9 @@ def test_streamlit_5_pages_and_monochrome_academic_theme() -> None:
         + " "
         + " ".join(MONOCHROME_CHART_SEQUENCE)
     )
-    for hex_code in ("#FFFFFF", "#F7F7F5", "#171717", "#737373", "#E5E5E5", "#F3F3F1"):
+    for hex_code in ("#FFFFFF", "#F7F7F5", "#171717", "#111111", "#737373", "#E5E5E5", "#F3F3F1"):
         assert hex_code in palette_blob
+    assert ".st-key-top_navbar" in MONOCHROME_ACADEMIC_CSS
     assert "Source Serif 4" in MONOCHROME_ACADEMIC_CSS
     assert "Inter" in MONOCHROME_ACADEMIC_CSS
 
@@ -226,14 +227,16 @@ def test_streamlit_5_pages_and_monochrome_academic_theme() -> None:
     assert '#171717' in toml_text
     assert '#FFFFFF' in toml_text
 
-    # Render all 5 pages cleanly through Streamlit AppTest with 0 trial records
+    # Render all 5 pages cleanly through Streamlit AppTest via top navbar buttons
     app_entry = Path(__file__).resolve().parent.parent / "app" / "streamlit_app.py"
     at = AppTest.from_file(str(app_entry), default_timeout=20)
     at.run()
     assert not at.exception
+    assert len(at.sidebar) == 0
 
     for page_name in expected_pages:
-        at.sidebar.radio[0].set_value(page_name).run()
+        nav_btn = next(b for b in at.button if b.key == f"top_nav_{page_name}")
+        nav_btn.click().run()
         assert not at.exception, f"Exception on page '{page_name}': {at.exception}"
 
 

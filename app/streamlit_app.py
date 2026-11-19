@@ -1,7 +1,8 @@
-"""Streamlit entry point for the Gemini 4 Hydrogen Cross-Modal Safety Research Workbench."""
+"""Streamlit entry point with black top navigation bar for the Gemini 4 Hydrogen Research Workbench."""
 
 from __future__ import annotations
 
+import html
 import sys
 from pathlib import Path
 
@@ -13,9 +14,46 @@ import streamlit as st
 
 from app.components import inject_theme_css
 from app.navigation import PAGES
-from config import DEFAULT_MODEL_ID, ensure_directories
-from dataset.scenario_manager import load_registry
+from config import ensure_directories
 from experiment.hydrogen_client import get_api_key, is_api_fully_validated
+
+
+def _render_top_navbar(active_page: str) -> str:
+    """Render solid black top navigation bar and return selected page."""
+    api_ok = is_api_fully_validated()
+    key_set = bool(get_api_key())
+    api_label = (
+        "API: Verified (4/4)"
+        if api_ok
+        else ("API: Unverified" if key_set else "API: Not Connected")
+    )
+
+    with st.container(key="top_navbar"):
+        nav_l, nav_c, nav_r = st.columns([1.9, 5.6, 1.5], vertical_alignment="center")
+        with nav_l:
+            st.markdown(
+                '<div class="navbar-brand">Gemini 4 Hydrogen</div>',
+                unsafe_allow_html=True,
+            )
+        with nav_c:
+            with st.container(horizontal=True, gap="small", horizontal_alignment="center"):
+                for page_name in PAGES:
+                    is_active = page_name == active_page
+                    if st.button(
+                        page_name,
+                        key=f"top_nav_{page_name}",
+                        type="primary" if is_active else "secondary",
+                    ):
+                        if not is_active:
+                            st.session_state["active_page"] = page_name
+                            st.rerun()
+        with nav_r:
+            st.markdown(
+                f'<div class="navbar-status">{html.escape(api_label)}</div>',
+                unsafe_allow_html=True,
+            )
+
+    return st.session_state.get("active_page", active_page)
 
 
 def main() -> None:
@@ -23,35 +61,15 @@ def main() -> None:
     st.set_page_config(
         page_title="Gemini 4 Hydrogen Research",
         layout="wide",
-        initial_sidebar_state="expanded",
+        initial_sidebar_state="collapsed",
     )
     inject_theme_css()
 
-    with st.sidebar:
-        st.markdown("### Gemini 4 Hydrogen")
-        st.caption("Cross-Modal Safety Study")
-        st.divider()
-        selected_page = st.radio(
-            "Navigation",
-            list(PAGES.keys()),
-            index=0,
-            label_visibility="collapsed",
-        )
-        st.divider()
-        api_ok = is_api_fully_validated()
-        key_set = bool(get_api_key())
-        reg = load_registry()
-        api_label = (
-            "Verified (4/4)"
-            if api_ok
-            else ("Key set (unverified)" if key_set else "Not connected")
-        )
-        st.caption(f"Model: `{DEFAULT_MODEL_ID}`")
-        st.caption(f"API: {api_label}")
-        st.caption(f"Pilot dataset: `{reg.get('active_pilot_version') or 'None'}`")
-        st.caption(f"Main dataset: `{reg.get('active_main_version') or 'None'}`")
+    if "active_page" not in st.session_state or st.session_state["active_page"] not in PAGES:
+        st.session_state["active_page"] = "Overview"
 
-    PAGES[selected_page]()
+    active_page = _render_top_navbar(st.session_state["active_page"])
+    PAGES[active_page]()
 
 
 if __name__ == "__main__":

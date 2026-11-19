@@ -1,17 +1,24 @@
-"""Overview — Minimal academic research homepage."""
+"""Overview — Minimal academic dashboard explaining the study, status, and next step."""
 
 from __future__ import annotations
 
 import html
+from typing import Tuple
 
 import streamlit as st
 
-from app.components import render_metric_card, render_page_header
+from app.components import (
+    navigate_to,
+    render_metric_card,
+    render_page_header,
+    render_study_pillar,
+)
 from config import (
     DEFAULT_MODEL_ID,
     MAIN_TARGET_CALLS,
     PILOT_REPORT_MD,
     PILOT_TARGET_CALLS,
+    RESEARCH_OBJECTIVE,
     RESEARCH_TITLE,
     STATISTICAL_RESULTS_CSV,
     THINKING_LEVELS,
@@ -37,28 +44,61 @@ def _compute_next_step(
     main_completed: int,
     total_completed: int,
     annotated_count: int,
-) -> str:
+) -> Tuple[str, str, str]:
+    """Return (next_step_message, target_page, button_label)."""
     if not api_key_present or not api_validated:
-        return "Your next step is to configure your Gemini API key and verify the four thinking levels in Settings."
+        return (
+            "Your next step is to configure your Gemini API key and verify the four thinking levels in Settings.",
+            "Settings",
+            "Open Settings",
+        )
     if not pilot_approved:
-        return "Your next step is to review and approve the 12-scenario Pilot Dataset in Research Runs."
+        return (
+            "Your next step is to review and approve the 12-scenario Pilot Dataset in Research Runs.",
+            "Research Runs",
+            "Open Research Runs",
+        )
     if pilot_completed < PILOT_TARGET_CALLS:
-        return "Your next step is to run the 96-call Pilot Experiment in Research Runs."
+        return (
+            "Your next step is to run the 96-call Pilot Experiment in Research Runs.",
+            "Research Runs",
+            "Open Research Runs",
+        )
     if pilot_annotated < pilot_completed:
-        return "Your next step is to complete human annotation and review of the pilot responses in Results & Analysis."
+        return (
+            "Your next step is to complete human annotation and review of the pilot responses in Results & Analysis.",
+            "Results & Analysis",
+            "Open Results & Analysis",
+        )
     if not main_approved:
-        return "Your next step is to review and approve the 60-scenario Main Dataset in Research Runs."
+        return (
+            "Your next step is to review and approve the 60-scenario Main Dataset in Research Runs.",
+            "Research Runs",
+            "Open Research Runs",
+        )
     if main_completed < MAIN_TARGET_CALLS:
-        return "Your next step is to authorize and run the 1,440-call Main Experiment in Research Runs."
+        return (
+            "Your next step is to authorize and run the 1,440-call Main Experiment in Research Runs.",
+            "Research Runs",
+            "Open Research Runs",
+        )
     if annotated_count < total_completed:
-        return "Your next step is to annotate the remaining experimental responses in Results & Analysis."
-    return "All experimental runs and human annotations are complete. Review your findings and export results in Results & Analysis."
+        return (
+            "Your next step is to annotate the remaining experimental responses in Results & Analysis.",
+            "Results & Analysis",
+            "Open Results & Analysis",
+        )
+    return (
+        "All experimental runs and human annotations are complete. Review your findings and export results in Results & Analysis.",
+        "Results & Analysis",
+        "View Final Results",
+    )
 
 
 def render() -> None:
     render_page_header(
         "Overview",
-        f"{RESEARCH_TITLE}. Model under study: {DEFAULT_MODEL_ID}.",
+        f"{RESEARCH_TITLE}. {RESEARCH_OBJECTIVE}",
     )
 
     api_key_present = bool(get_api_key())
@@ -101,10 +141,10 @@ def render() -> None:
     pilot_state = load_experiment_state("pilot")
     main_state = load_experiment_state("main")
 
-    # Four core statistics answering API, dataset/progress, and annotation state
+    # 1. Four Core Statistics
     if api_validated:
         api_stat = f"Connected ({validated_lvl_count}/4)"
-        api_sub = "All 4 thinking levels verified"
+        api_sub = f"{DEFAULT_MODEL_ID} verified"
     elif api_key_present:
         api_stat = "Not verified"
         api_sub = f"Key present · {validated_lvl_count}/4 levels verified"
@@ -134,8 +174,8 @@ def render() -> None:
             f"Of {total_completed:,} completed responses" if total_completed > 0 else "No responses recorded yet",
         )
 
-    # Next Step callout
-    next_step = _compute_next_step(
+    # 2. Next Step Callout with Action Shortcut
+    next_step, next_page, next_btn_label = _compute_next_step(
         api_key_present=api_key_present,
         api_validated=api_validated,
         pilot_approved=pilot_approved,
@@ -146,20 +186,47 @@ def render() -> None:
         total_completed=total_completed,
         annotated_count=annotated_count,
     )
-    st.markdown(
-        f"""
-        <div class="next-step-panel">
-            <div class="next-step-kicker">Next Step</div>
-            <div class="next-step-body">{html.escape(next_step)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    ns_left, ns_right = st.columns([4, 1.2], vertical_alignment="center")
+    with ns_left:
+        st.markdown(
+            f"""
+            <div class="next-step-panel">
+                <div class="next-step-kicker">Next Step</div>
+                <div class="next-step-body">{html.escape(next_step)}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with ns_right:
+        if st.button(next_btn_label, type="primary", use_container_width=True, key="ov_next_btn"):
+            navigate_to(next_page)
 
     st.divider()
+
+    # 3. Study Design Summary (Explains the Project Wisely)
+    st.subheader("Study Architecture")
+    p1, p2, p3 = st.columns(3)
+    with p1:
+        render_study_pillar(
+            "60 Matched Scenario Families",
+            "Balanced across Clearly Benign (20), Sensitive-Looking Legitimate (20), and Controlled Unsafe (20) cases. Each family pairs a Text-Only prompt with a semantically matched Image + Text prompt.",
+        )
+    with p2:
+        render_study_pillar(
+            "4 Thinking Levels & Two-Stage Runs",
+            "Evaluates Gemini 4 Hydrogen at LOW, MEDIUM, HIGH, and XHIGH reasoning levels. Begins with a 96-call Pilot (12 scenarios × 1 repetition) before unlocking the 1,440-call Main study (60 scenarios × 3 repetitions).",
+        )
+    with p3:
+        render_study_pillar(
+            "Human Coding & 11 Metrics",
+            "Blind dual human annotation with Cohen's kappa and adjudication measures refusal appropriateness, over-refusal, unsafe compliance, safe completion, cross-modal disagreement, latency, tokens, and usefulness.",
+        )
+
+    st.divider()
+
+    # 4. Research Progress
     st.subheader("Research Progress")
 
-    # 1. API verification
     if api_validated:
         api_step_status = "Completed"
         api_step_detail = "All four thinking levels (LOW, MEDIUM, HIGH, XHIGH) passed endpoint checks."
@@ -170,7 +237,6 @@ def render() -> None:
         api_step_status = "Not started"
         api_step_detail = "Configure GEMINI_API_KEY and verify endpoint support in Settings."
 
-    # 2. Dataset approval
     if pilot_approved and main_approved:
         ds_status = "Completed"
         ds_detail = "Both pilot (12 scenarios) and main (60 scenarios) versions are approved."
@@ -187,7 +253,6 @@ def render() -> None:
         ds_status = "Not started"
         ds_detail = "Import pilot and main scenario datasets in Research Runs."
 
-    # 3. Pilot experiment
     if pilot_completed >= PILOT_TARGET_CALLS:
         pilot_status = "Completed"
         pilot_detail = f"{pilot_completed} of {PILOT_TARGET_CALLS} calls completed."
@@ -201,7 +266,6 @@ def render() -> None:
         pilot_status = "Not started"
         pilot_detail = "Ready to run 96 pilot calls in Research Runs."
 
-    # 4. Pilot annotation and review
     if pilot_completed >= PILOT_TARGET_CALLS and pilot_annotated >= pilot_completed and PILOT_REPORT_MD.exists():
         pilot_rev_status = "Completed"
         pilot_rev_detail = f"{pilot_annotated} of {pilot_completed} pilot responses annotated."
@@ -215,7 +279,6 @@ def render() -> None:
         pilot_rev_status = "Not started"
         pilot_rev_detail = f"{pilot_completed} pilot responses ready for annotation."
 
-    # 5. Main experiment
     main_readiness = verify_main_experiment_readiness(explicit_approved=False)
     if main_completed >= MAIN_TARGET_CALLS:
         main_status = "Completed"
@@ -234,7 +297,6 @@ def render() -> None:
         main_status = "Pending approval"
         main_detail = "Prerequisites met. Requires explicit researcher confirmation in Research Runs."
 
-    # 6. Final analysis
     stats_ready = STATISTICAL_RESULTS_CSV.exists() and STATISTICAL_RESULTS_CSV.stat().st_size > 10
     if main_completed >= MAIN_TARGET_CALLS and annotated_count >= main_completed and stats_ready:
         analysis_status = "Completed"

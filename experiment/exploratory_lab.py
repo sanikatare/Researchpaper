@@ -156,12 +156,19 @@ def send_exploratory_prompt(
             raise ValueError("Please attach an image when 'Image + Text' mode is selected.")
         effective_image = Path(image_path)
 
+    from experiment.storage import load_runtime_config
+
+    runtime_cfg = load_runtime_config()
     res = call_gemini_hydrogen(
         prompt=clean_prompt,
         thinking_level=avail["level"],
         model_id=DEFAULT_MODEL_ID,
         image_path=effective_image,
         max_output_tokens=int(max_output_tokens),
+        timeout_seconds=float(runtime_cfg.timeout_seconds),
+        max_retries=int(runtime_cfg.max_retries),
+        retry_base_delay=float(runtime_cfg.retry_base_delay),
+        min_request_interval=float(getattr(runtime_cfg, "min_request_interval", 0.0)),
         include_thoughts=include_thoughts,
         system_instruction=system_instruction,
         api_key=api_key,

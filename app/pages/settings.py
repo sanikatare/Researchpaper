@@ -1,4 +1,4 @@
-"""Settings — Consolidated API connection, verification, and runtime parameters."""
+"""Settings — Consolidated API connection, live verification, and runtime parameters."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from config import (
     get_api_key,
     mask_api_key,
 )
+from dataset.aistudio_workflow import write_integration_validation_report
 from dataset.scenario_manager import resolve_image_path
 from experiment.hydrogen_client import (
     API_ERROR_LOG_PATH,
@@ -29,7 +30,7 @@ from experiment.storage import load_runtime_config, save_runtime_config
 def render() -> None:
     render_page_header(
         "Settings",
-        "API credentials status, live endpoint verification for Gemini 4 Hydrogen, and runtime limits.",
+        "Check API credentials, verify thinking-level support on Gemini 4 Hydrogen, and configure runtime limits.",
     )
 
     api_key = get_api_key()
@@ -42,7 +43,11 @@ def render() -> None:
     conn_status = (
         "Connected (4/4 verified)"
         if is_api_fully_validated()
-        else (f"Partially verified ({validated_count}/4)" if validated_count > 0 else ("Key configured (unverified)" if api_key else "Not connected"))
+        else (
+            f"Partially verified ({validated_count}/4)"
+            if validated_count > 0
+            else ("Key configured (unverified)" if api_key else "Not connected")
+        )
     )
 
     c1, c2, c3, c4 = st.columns(4)
@@ -58,13 +63,13 @@ def render() -> None:
     if not api_key:
         st.info(
             "GEMINI_API_KEY is not set in the runtime environment. Add GEMINI_API_KEY to your "
-            "environment secrets or .env file before running live verification."
+            "environment variables or .env file before running live verification."
         )
 
     st.divider()
     st.subheader("Live API & Thinking-Level Verification")
     st.caption(
-        "Verification sends real requests to the configured Gemini 4 Hydrogen endpoint. "
+        "Verification sends real requests to the Gemini 4 Hydrogen endpoint. "
         "Unsupported or unverified thinking levels are never simulated."
     )
 
@@ -90,25 +95,39 @@ def render() -> None:
                 image_path=probe_img,
             )
             generate_api_readiness_report(API_READINESS_REPORT_MD, endpoint_check=ep)
+        st.session_state["settings_last_verify"] = {
+            "endpoint": ep,
+            "results": [
+                {
+                    "level": r.thinking_level,
+                    "status": r.status,
+                    "latency_ms": r.latency_ms,
+                    "model": r.actual_model_version,
+                    "error_code": r.error_code,
+                    "error_message": r.error_message,
+                }
+                for r in results
+            ],
+        }
+        st.rerun()
 
+    last_verify = st.session_state.get("settings_last_verify")
+    if last_verify:
+        ep = last_verify.get("endpoint", {})
         if ep.get("accessible"):
             st.success(f"Endpoint reachable: `{ep.get('endpoint_name')}`.")
         else:
             st.error(f"Endpoint check failed: {ep.get('error')}")
-
-        for r in results:
-            if r.status == "success":
+        for r in last_verify.get("results", []):
+            if r["status"] == "success":
                 st.write(
-                    f"**{r.thinking_level}:** Supported · {r.latency_ms:.0f} ms · "
-                    f"Model: `{r.actual_model_version}`"
+                    f"**{r['level']}:** Supported · {r['latency_ms']:.0f} ms · "
+                    f"Model: `{r['model']}`"
                 )
             else:
                 st.error(
-                    f"**{r.thinking_level}:** Unavailable ({r.error_code}) — {r.error_message}"
+                    f"**{r['level']}:** Unavailable ({r['error_code']}) — {r['error_message']}"
                 )
-        val_state = load_validation_state()
-        levels = val_state.get("levels", {})
-        mm_probe = val_state.get("multimodal_probe", {})
 
     rows = []
     for lvl in THINKING_LEVELS:
@@ -199,14 +218,22 @@ def render() -> None:
                 save_runtime_config(cfg)
                 st.success("Runtime settings saved.")
 
-    with st.expander("API Readiness Report & Error Log", expanded=False):
-        if API_READINESS_REPORT_MD.exists():
-            st.download_button(
-                "Download API Readiness Report (MD)",
-                data=API_READINESS_REPORT_MD.read_text(encoding="utf-8"),
-                file_name="api_readiness_report.md",
-                mime="text/markdown",
-            )
+    with st.expander("Diagnostics, Reports & Error Log", expanded=False):
+        d1, d2 = st.columns(2)
+        with d1:
+            if API_READINESS_REPORT_MD.exists():
+                st.download_button(
+                    "Download API Readiness Report (MD)",
+                    data=API_READINESS_REPORT_MD.read_text(encoding="utf-8"),
+                    file_name="api_readiness_report.md",
+                    mime="text/markdown",
+                    use_container_width=True,
+                )
+        with d2:
+            if st.button("Generate AI Studio Integration Audit (MD)", use_container_width=True):
+                audit_path = write_integration_validation_report()
+                st.success(f"Updated `{audit_path.name}`.")
+
         if API_ERROR_LOG_PATH.exists():
             lines = API_ERROR_LOG_PATH.read_text(encoding="utf-8", errors="replace").splitlines()
             st.code("\n".join(lines[-50:]) if lines else "Error log is empty.", language="text")

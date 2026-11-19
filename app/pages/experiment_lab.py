@@ -8,8 +8,8 @@ from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
-from app.components import render_empty_state, render_page_header
-from config import DEFAULT_MODEL_ID, THINKING_LEVELS
+from app.components import navigate_to, render_empty_state, render_page_header
+from config import DEFAULT_MODEL_ID, EXPLORATORY_UPLOADS_DIR, THINKING_LEVELS
 from experiment.exploratory_lab import (
     check_thinking_level_availability,
     load_candidate_scenarios,
@@ -176,7 +176,12 @@ def render(client: Optional[Any] = None) -> None:
     # Validate selected thinking level against real verification state
     level_status = check_thinking_level_availability(selected_level)
     if not level_status["available"]:
-        st.warning(level_status["reason"])
+        warn_col, nav_col = st.columns([4, 1.2], vertical_alignment="center")
+        with warn_col:
+            st.warning(level_status["reason"])
+        with nav_col:
+            if st.button("Open Settings", key="lab_open_settings", use_container_width=True):
+                navigate_to("Settings")
 
     # Optional image uploader when Image + Text mode is active
     attached_meta = st.session_state.lab_attached_image
@@ -219,6 +224,22 @@ def render(client: Optional[Any] = None) -> None:
                 )
             with rem_c:
                 if st.button("Remove Image", key="lab_remove_image"):
+                    used_paths = {
+                        str(m.get("image_path"))
+                        for m in st.session_state.get("lab_messages", [])
+                        if m.get("image_path")
+                    }
+                    try:
+                        img_p = Path(attached_meta["path"]).resolve()
+                        if (
+                            str(attached_meta["path"]) not in used_paths
+                            and str(img_p) not in used_paths
+                            and img_p.is_file()
+                            and img_p.parent == EXPLORATORY_UPLOADS_DIR.resolve()
+                        ):
+                            img_p.unlink(missing_ok=True)
+                    except Exception:
+                        pass
                     st.session_state.lab_attached_image = None
                     st.session_state.lab_uploader_nonce += 1
                     st.rerun()

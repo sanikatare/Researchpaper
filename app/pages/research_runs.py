@@ -85,6 +85,12 @@ def _render_dataset_section() -> None:
         else {"intact": False}
     )
 
+    def _cat_summary(scens: list) -> str:
+        b = sum(1 for s in scens if s.get("category") == "clearly_benign")
+        sl = sum(1 for s in scens if s.get("category") == "sensitive_looking_legitimate")
+        u = sum(1 for s in scens if s.get("category") == "genuinely_unsafe")
+        return f"Benign {b} / Sensitive {sl} / Unsafe {u}"
+
     col_p, col_m = st.columns(2)
     with col_p:
         p_ver = pilot_entry["dataset_version"] if pilot_entry else "None"
@@ -95,7 +101,7 @@ def _render_dataset_section() -> None:
         render_metric_card(
             f"Pilot Dataset ({p_ver})",
             f"{len(pilot_scenarios)} scenarios",
-            f"Approval: {p_app} · Integrity: {p_sha}",
+            f"{_cat_summary(pilot_scenarios)} · Approval: {p_app} · {p_sha}",
         )
     with col_m:
         m_ver = main_entry["dataset_version"] if main_entry else "None"
@@ -106,7 +112,7 @@ def _render_dataset_section() -> None:
         render_metric_card(
             f"Main Dataset ({m_ver})",
             f"{len(main_scenarios)} scenarios",
-            f"Approval: {m_app} · Integrity: {m_sha}",
+            f"{_cat_summary(main_scenarios)} · Approval: {m_app} · {m_sha}",
         )
 
     if "rr_review_scope" not in st.session_state:
@@ -150,12 +156,27 @@ def _render_dataset_section() -> None:
     is_approved = active_entry.get("researcher_approval_status") == "approved"
     val_rep = validate_dataset(scenarios, expected_scope=scope, dataset_approved=is_approved)
 
+    cat_counts = val_rep.get("category_counts", {})
     st.markdown(
         f"**Inspecting {scope.title()} Version:** `{ver_id}` · "
         f"Technical validation: `{val_rep['validation_status']}` · "
         f"Approval: `{_format_approval(active_entry.get('researcher_approval_status'))}` · "
+        f"Categories: {cat_counts.get('clearly_benign', 0)} benign / "
+        f"{cat_counts.get('sensitive_looking_legitimate', 0)} sensitive / "
+        f"{cat_counts.get('genuinely_unsafe', 0)} unsafe · "
         f"Per-scenario reviews: {approved_scen_count} approved, {rejected_count} rejected"
     )
+
+    with st.expander("Validation Checks Summary (Schema, Matching, Exclusions & Signoff)", expanded=False):
+        checks_rows = val_rep.get("checks_matrix", [])
+        if checks_rows:
+            st.dataframe(
+                pd.DataFrame(checks_rows).rename(
+                    columns={"check": "Validation Check", "status": "Result", "details": "Details"}
+                ),
+                use_container_width=True,
+                hide_index=True,
+            )
 
     if scenarios:
         f_col1, f_col2 = st.columns([1, 2])
@@ -453,6 +474,11 @@ def _render_pilot_section() -> None:
     with m4:
         render_metric_card("Remaining Calls", str(len(pending)), f"Dataset: {pilot_entry['dataset_version']}")
 
+    st.caption(
+        f"Runtime configuration: Max output tokens {pilot_cfg.max_output_tokens} · "
+        f"Timeout {pilot_cfg.timeout_seconds:.0f}s · Random seed {pilot_cfg.random_seed}"
+    )
+
     blockers = []
     if not api_ok:
         blockers.append("verify all 4 thinking levels in Settings")
@@ -491,6 +517,7 @@ def _render_pilot_section() -> None:
             key="rr_pilot_pause",
         ):
             ctrl.pause()
+            st.rerun()
     with b3:
         if st.button(
             "Resume",
@@ -516,6 +543,7 @@ def _render_pilot_section() -> None:
             key="rr_pilot_stop",
         ):
             ctrl.stop()
+            st.rerun()
 
     total_done = completed_cnt + snap["succeeded_in_run"] if is_running else completed_cnt
     if total_done > 0 or is_running:
@@ -523,6 +551,10 @@ def _render_pilot_section() -> None:
         st.caption(
             f"Execution status: {snap['status']} · Progress: {total_done}/{len(plan)}"
         )
+
+    if snap.get("logs"):
+        with st.expander("Recent Pilot Runner Activity", expanded=is_running):
+            st.code("\n".join(snap["logs"][-12:]), language="text")
 
     if snap["last_error"]:
         st.error(f"Pilot runner error: {snap['last_error']}")
@@ -599,7 +631,9 @@ def _render_main_section() -> None:
 
     st.caption(
         f"Pilot completion: {pilot_done}/{PILOT_TARGET_CALLS} calls · "
-        f"Main dataset approval: {_format_approval(main_entry.get('researcher_approval_status'))}"
+        f"Main dataset approval: {_format_approval(main_entry.get('researcher_approval_status'))} · "
+        f"Runtime configuration: Max output tokens {main_cfg.max_output_tokens} · "
+        f"Timeout {main_cfg.timeout_seconds:.0f}s · Random seed {main_cfg.random_seed}"
     )
 
     explicit_approval = st.checkbox(
@@ -656,6 +690,7 @@ def _render_main_section() -> None:
             key="rr_main_pause",
         ):
             ctrl.pause()
+            st.rerun()
     with b3:
         if st.button(
             "Resume",
@@ -681,6 +716,7 @@ def _render_main_section() -> None:
             key="rr_main_stop",
         ):
             ctrl.stop()
+            st.rerun()
 
     total_done = completed_cnt + snap["succeeded_in_run"] if is_running else completed_cnt
     if total_done > 0 or is_running:
@@ -688,6 +724,10 @@ def _render_main_section() -> None:
         st.caption(
             f"Execution status: {snap['status']} · Progress: {total_done:,}/{len(plan):,}"
         )
+
+    if snap.get("logs"):
+        with st.expander("Recent Main Runner Activity", expanded=is_running):
+            st.code("\n".join(snap["logs"][-12:]), language="text")
 
     if snap["last_error"]:
         st.error(f"Main runner error: {snap['last_error']}")

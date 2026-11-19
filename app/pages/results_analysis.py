@@ -25,10 +25,12 @@ from config import (
     ANNOTATION_LABELS,
     ANNOTATION_LABEL_DISPLAY,
     API_READINESS_REPORT_MD,
+    CANDIDATE_SCENARIOS_JSON,
     CATEGORY_LABELS,
     DATASET_REGISTRY_PATH,
     EXPERIMENT_LOG_MD,
     EXPERIMENT_MANIFEST_JSON,
+    EXPLORATORY_CHAT_JSONL,
     FIGURES_DIR,
     HUMAN_ANNOTATIONS_CSV,
     IMPLEMENTATION_REPORT_MD,
@@ -467,6 +469,11 @@ def _render_safety_metrics_tab(df: pd.DataFrame) -> None:
         f"{excl['excluded_unannotated_or_unresolved']} unannotated, "
         f"{excl['excluded_invalid_trial']} invalid"
     )
+    if excl["total_records"] > 0 and excl["evaluable_trials"] == 0:
+        st.info(
+            "Raw API latency and token usage (Metrics 7–10) reflect recorded API calls. "
+            "Safety decision rates and usefulness (Metrics 1–6, 11) require completed human annotations in the Response Annotation tab."
+        )
 
     r1 = st.columns(4)
     with r1[0]:
@@ -622,6 +629,10 @@ def _render_modality_tab(df: pd.DataFrame) -> None:
         format_rate(ov["cross_modal_disagreement_rate"]),
         f"Matched pairs evaluated: {ov['cross_modal_matched_pairs']}",
     )
+    if ov["evaluable_n"] == 0:
+        st.info(
+            "Modality latency and token averages reflect raw API responses; cross-modal safety comparisons require human annotation."
+        )
 
     if not by_mod.empty:
         disp_rows = []
@@ -941,6 +952,26 @@ def _render_export_tab() -> None:
                 _download_button_or_placeholder(f"Download {p.name}", p, "image/png", f"exp_fig_{p.name}")
         else:
             st.caption("No PNG figures generated yet.")
+
+    with st.expander("Exploratory Lab Exports (Separate from Official Research)", expanded=False):
+        st.caption(
+            "Exploratory prompts and candidate scenarios saved in Experiment Lab remain strictly isolated from Pilot and Main datasets."
+        )
+        ex_c1, ex_c2 = st.columns(2)
+        with ex_c1:
+            _download_button_or_placeholder(
+                "Candidate Scenarios (JSON)",
+                CANDIDATE_SCENARIOS_JSON,
+                "application/json",
+                "exp_lab_candidates",
+            )
+        with ex_c2:
+            _download_button_or_placeholder(
+                "Exploratory Chat History (JSONL)",
+                EXPLORATORY_CHAT_JSONL,
+                "application/jsonl",
+                "exp_lab_chat",
+            )
 
 
 def render() -> None:

@@ -162,6 +162,11 @@ def test_exploratory_lab_thinking_level_gating_and_isolation(tmp_path, monkeypat
     assert len(storage.load_trial_records("main")) == 0
 
 
+def _nav_click(at: AppTest, page_name: str) -> None:
+    btn = next(b for b in at.button if b.key == f"top_nav_{page_name}")
+    btn.click().run()
+
+
 def test_overview_and_annotation_empty_state_via_apptest(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(storage, "PILOT_DIR", tmp_path / "pilot")
     monkeypatch.setattr(storage, "MAIN_DIR", tmp_path / "main")
@@ -173,16 +178,27 @@ def test_overview_and_annotation_empty_state_via_apptest(tmp_path, monkeypatch) 
     at = AppTest.from_file(str(app_entry), default_timeout=20)
     at.run()
     assert not at.exception
+    assert len(at.sidebar) == 0
 
-    # Overview renders 4 core stats + 6 milestones + Next Step
+    # Overview renders top navbar + 4 core stats + Study Architecture + 6 milestones + Next Step
     md_text = "\n".join(m.value for m in at.markdown)
+    assert "Gemini 4 Hydrogen" in md_text
     assert "Overview" in md_text
     assert "0/96" in md_text
     assert "0/1,440" in md_text
     assert "Next Step" in md_text
+    assert "60 Matched Scenario Families" in md_text
+    assert "4 Thinking Levels &amp; Two-Stage Runs" in md_text
+    assert "Human Coding &amp; 11 Metrics" in md_text
+
+    # Clicking Next Step shortcut button navigates cleanly
+    next_btn = next(b for b in at.button if b.key == "ov_next_btn")
+    next_btn.click().run()
+    assert not at.exception
+    assert "Settings" in "\n".join(m.value for m in at.markdown)
 
     # Results & Analysis -> Annotation empty state must NOT be blank
-    at.sidebar.radio[0].set_value("Results & Analysis").run()
+    _nav_click(at, "Results & Analysis")
     assert not at.exception
     ra_md = "\n".join(m.value for m in at.markdown)
     assert "No experimental responses are available for annotation yet." in ra_md
@@ -234,22 +250,24 @@ def test_annotation_interface_and_experiment_lab_ui_with_mock_records(tmp_path, 
     app_entry = Path(__file__).resolve().parent.parent / "app" / "streamlit_app.py"
     at = AppTest.from_file(str(app_entry), default_timeout=20)
     at.run()
-    at.sidebar.radio[0].set_value("Results & Analysis").run()
+    _nav_click(at, "Results & Analysis")
     assert not at.exception
 
-    # Annotation UI must display the seeded response and coding controls
+    # Annotation UI must display the seeded response, coding controls, and raw-vs-annotated guidance
     ta_values = [ta.value for ta in at.text_area]
     assert any("Safe test completion response." in str(v) for v in ta_values)
     assert any(b.label == "Save Annotation" for b in at.button)
+    assert any("Raw API latency and token usage" in i.value for i in at.info)
 
-    # Experiment Lab UI renders exploratory notice & blocks unvalidated thinking level
-    at.sidebar.radio[0].set_value("Experiment Lab").run()
+    # Experiment Lab UI renders exploratory notice, blocks unvalidated level, and shows Open Settings shortcut
+    _nav_click(at, "Experiment Lab")
     assert not at.exception
     info_msgs = [i.value for i in at.info]
     assert any("Exploratory testing only" in m for m in info_msgs)
     send_btns = [b for b in at.button if b.label == "Send"]
     assert len(send_btns) == 1
     assert send_btns[0].disabled is True
+    assert any(b.key == "lab_open_settings" for b in at.button)
 
 
 def test_experiment_lab_chat_flow_research_runs_and_settings_via_apptest(tmp_path, monkeypatch) -> None:
@@ -290,7 +308,7 @@ def test_experiment_lab_chat_flow_research_runs_and_settings_via_apptest(tmp_pat
     at.run()
 
     # 1. Experiment Lab: submit mocked prompt -> response renders -> Save as Candidate Scenario -> Clear Chat
-    at.sidebar.radio[0].set_value("Experiment Lab").run()
+    _nav_click(at, "Experiment Lab")
     assert not at.exception
     send_btns = [b for b in at.button if b.label == "Send"]
     assert len(send_btns) == 1 and send_btns[0].disabled is False
@@ -315,9 +333,12 @@ def test_experiment_lab_chat_flow_research_runs_and_settings_via_apptest(tmp_pat
     assert not at.exception
     assert "Start an exploratory session" in "\n".join(m.value for m in at.markdown)
 
-    # 2. Research Runs: verify dataset, pilot, and main controls render & enforce gates
-    at.sidebar.radio[0].set_value("Research Runs").run()
+    # 2. Research Runs: verify dataset category balance, pilot, and main controls render & enforce gates
+    _nav_click(at, "Research Runs")
     assert not at.exception
+    rr_md = "\n".join(m.value for m in at.markdown)
+    assert "Benign 4 / Sensitive 4 / Unsafe 4" in rr_md
+    assert "Benign 20 / Sensitive 20 / Unsafe 20" in rr_md
     labels = {b.label for b in at.button}
     for expected_btn in (
         "Review Pilot Dataset",
@@ -331,10 +352,12 @@ def test_experiment_lab_chat_flow_research_runs_and_settings_via_apptest(tmp_pat
     ):
         assert expected_btn in labels
 
-    # 3. Settings: Verify Gemini API button executes mocked endpoint check cleanly
-    at.sidebar.radio[0].set_value("Settings").run()
+    # 3. Settings: Verify Gemini API button executes mocked endpoint check and triggers rerun cleanly
+    _nav_click(at, "Settings")
     assert not at.exception
-    verify_btn = next(b for b in at.button if b.label == "Verify Gemini API")
+    verify_btn = next(b for b in at.button if b.key == "settings_verify_btn")
     verify_btn.click().run()
     assert not at.exception
+    assert any("Endpoint reachable" in s.value for s in at.success)
+    assert any(b.label == "Generate AI Studio Integration Audit (MD)" for b in at.button)
 
