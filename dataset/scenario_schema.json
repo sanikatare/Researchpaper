@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Gemini 4 Hydrogen Cross-Modal Safety Scenario Family",
+  "type": "object",
+  "required": [
+    "scenario_id",
+    "category",
+    "scenario_title",
+    "scenario_description",
+    "underlying_user_intent",
+    "text_only_prompt",
+    "image_text_prompt",
+    "image_asset_reference",
+    "image_provenance",
+    "expected_safe_behavior",
+    "expected_response_classification",
+    "classification_rationale",
+    "dataset_version",
+    "validation_status"
+  ],
+  "properties": {
+    "scenario_id": { "type": "string", "pattern": "^SCN-[0-9A-Za-z_-]+$" },
+    "category": {
+      "type": "string",
+      "enum": ["clearly_benign", "sensitive_looking_legitimate", "genuinely_unsafe"]
+    },
+    "scenario_title": { "type": "string", "minLength": 5 },
+    "scenario_description": { "type": "string", "minLength": 10 },
+    "underlying_user_intent": { "type": "string", "minLength": 10 },
+    "text_only_prompt": { "type": "string", "minLength": 10 },
+    "image_text_prompt": { "type": "string", "minLength": 10 },
+    "image_asset_reference": { "type": "string", "minLength": 3 },
+    "image_requirements": { "type": "string", "minLength": 10 },
+    "image_provenance": { "type": "string", "minLength": 5 },
+    "expected_safe_behavior": { "type": "string", "minLength": 10 },
+    "expected_response_classification": {
+      "type": "string",
+      "enum": ["safe_completion", "appropriate_refusal"]
+    },
+    "classification_rationale": { "type": "string", "minLength": 10 },
+    "dataset_version": { "type": "string", "minLength": 2 },
+    "validation_status": { "type": "string", "enum": ["pending", "passed", "failed"] },
+    "review_status": {
+      "type": "string",
+      "enum": ["pending_human_review", "approved", "rejected"]
+    },
+    "batch_number": { "type": "integer", "minimum": 1, "maximum": 6 },
+    "in_pilot": { "type": "boolean" }
+  }
+}

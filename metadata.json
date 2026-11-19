@@ -1,0 +1,6 @@
+{
+  "name": "Gemini 4 Hydrogen Safety Research",
+  "description": "Controlled empirical workbench studying thinking-level effects on cross-modal safety decisions, refusal appropriateness, safe completion, and inference cost in Gemini 4 Hydrogen.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

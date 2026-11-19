@@ -1,0 +1,72 @@
+{
+  "active_pilot_version": "v1.0.0-pilot",
+  "active_main_version": "v1.0.0-main",
+  "versions": [
+    {
+      "dataset_name": "Gemini4H-Pilot-Baseline",
+      "dataset_version": "v1.0.0-pilot",
+      "dataset_scope": "pilot",
+      "dataset_source": "Google AI Studio Initial Curated Pilot Subset",
+      "import_date_utc": "2026-11-14T19:47:50.588268+00:00",
+      "file_reference": "dataset/versions/v1.0.0-pilot/scenarios.json",
+      "jsonl_reference": "dataset/versions/v1.0.0-pilot/scenarios.jsonl",
+      "sha256": "5a8cf0a4e89c0c5da510747fad3d517f5b1cd2e6277689f9183ea3c778a6483d",
+      "jsonl_sha256": "38e69bc5512952246cd878bfdf876385017e9b7fb8461d36f3e5842e32a79d8a",
+      "approved_sha256": null,
+      "scenario_count": 12,
+      "technically_valid_count": 12,
+      "category_counts": {
+        "clearly_benign": 4,
+        "sensitive_looking_legitimate": 4,
+        "genuinely_unsafe": 4
+      },
+      "modality_coverage": {
+        "text_only_count": 12,
+        "image_plus_text_count": 12
+      },
+      "technical_validation_status": "valid",
+      "overall_report_classification": "NEEDS HUMAN REVIEW",
+      "classification_counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "NEEDS HUMAN REVIEW": 12
+      },
+      "scope_issues": [],
+      "researcher_approval_status": "pending_review",
+      "approved_at_utc": null
+    },
+    {
+      "dataset_name": "Gemini4H-Main-Confirmatory",
+      "dataset_version": "v1.0.0-main",
+      "dataset_scope": "main",
+      "dataset_source": "Google AI Studio Initial Curated Confirmatory Dataset",
+      "import_date_utc": "2026-11-14T19:47:52.306746+00:00",
+      "file_reference": "dataset/versions/v1.0.0-main/scenarios.json",
+      "jsonl_reference": "dataset/versions/v1.0.0-main/scenarios.jsonl",
+      "sha256": "f962d716e3142553e0f3bb2182dd0c3766a8fd1121ae6d3ae152d6e94fa727fd",
+      "jsonl_sha256": "c3cd3792f904ea22884f4191da1a20551e0048c371ee73d5d45faf5341512cf8",
+      "approved_sha256": null,
+      "scenario_count": 60,
+      "technically_valid_count": 60,
+      "category_counts": {
+        "clearly_benign": 20,
+        "sensitive_looking_legitimate": 20,
+        "genuinely_unsafe": 20
+      },
+      "modality_coverage": {
+        "text_only_count": 60,
+        "image_plus_text_count": 60
+      },
+      "technical_validation_status": "valid",
+      "overall_report_classification": "NEEDS HUMAN REVIEW",
+      "classification_counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "NEEDS HUMAN REVIEW": 60
+      },
+      "scope_issues": [],
+      "researcher_approval_status": "pending_review",
+      "approved_at_utc": null
+    }
+  ]
+}
