@@ -1,0 +1,81 @@
+{
+  "generated_utc": "2026-11-19T05:59:19.917858+00:00",
+  "experiment_scope": "pilot",
+  "target_calls": 96,
+  "model_id": "gemini-4-hydrogen",
+  "software_version": "1.0.0",
+  "sdk_version": "3.6.1",
+  "random_seed": 42,
+  "randomize_order": true,
+  "config_fingerprint": "a40d8fa992f8d2da44c5dbe4227644753a6aa917be767b09c697292a59e34baa",
+  "configuration": {
+    "model_id": "gemini-4-hydrogen",
+    "thinking_levels": [
+      "LOW",
+      "MEDIUM",
+      "HIGH",
+      "XHIGH"
+    ],
+    "modalities": [
+      "text_only",
+      "image_plus_text"
+    ],
+    "repetitions": 1,
+    "max_output_tokens": 4096,
+    "timeout_seconds": 90.0,
+    "max_retries": 3,
+    "retry_base_delay": 2.0,
+    "min_request_interval": 0.0,
+    "randomize_order": true,
+    "random_seed": 42,
+    "include_thoughts": false,
+    "system_instruction": "",
+    "api_version": "google-genai-v1"
+  },
+  "datasets": {
+    "pilot": {
+      "dataset_version": "v1.0.0-pilot",
+      "sha256": "5a8cf0a4e89c0c5da510747fad3d517f5b1cd2e6277689f9183ea3c778a6483d",
+      "approved_sha256": null,
+      "researcher_approval_status": "pending_review",
+      "scenario_count": 12
+    },
+    "main": {
+      "dataset_version": "v1.0.0-main",
+      "sha256": "f962d716e3142553e0f3bb2182dd0c3766a8fd1121ae6d3ae152d6e94fa727fd",
+      "approved_sha256": null,
+      "researcher_approval_status": "pending_review",
+      "scenario_count": 60
+    }
+  },
+  "active_scope_dataset_version": "v1.0.0-pilot",
+  "active_scope_dataset_hash": "5a8cf0a4e89c0c5da510747fad3d517f5b1cd2e6277689f9183ea3c778a6483d",
+  "execution_counts": {
+    "overall": {
+      "total_records": 0,
+      "succeeded": 0,
+      "blocked": 0,
+      "failed": 0,
+      "unique_trial_ids": 0,
+      "unique_completed_conditions": 0
+    },
+    "pilot": {
+      "total_records": 0,
+      "succeeded": 0,
+      "blocked": 0,
+      "failed": 0,
+      "unique_trial_ids": 0,
+      "unique_completed_conditions": 0
+    },
+    "main": {
+      "total_records": 0,
+      "succeeded": 0,
+      "blocked": 0,
+      "failed": 0,
+      "unique_trial_ids": 0,
+      "unique_completed_conditions": 0
+    },
+    "annotation_entries": 0,
+    "annotated_resolved_trials": 0
+  }
+}

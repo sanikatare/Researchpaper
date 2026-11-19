@@ -117,7 +117,7 @@ def render() -> None:
         "Empirical Safety, Cross-Modal Consistency, Latency, Token Usage, and Usefulness Metrics",
     )
 
-    df_all = build_processed_results(None, save_csv=True)
+    df_all = build_processed_results(None, save_csv=False)
     if df_all.empty:
         st.info(
             "No experimental trials collected yet. Execute the Pilot or Main experiment "

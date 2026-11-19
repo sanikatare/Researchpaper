@@ -1,11 +1,13 @@
 {
-  "generated_utc": "2026-11-14T20:02:00.110809+00:00",
+  "generated_utc": "2026-11-19T05:59:19.939780+00:00",
+  "experiment_scope": "unified",
+  "target_calls": 1536,
   "model_id": "gemini-4-hydrogen",
   "software_version": "1.0.0",
-  "sdk_version": "2.33.0",
+  "sdk_version": "3.6.1",
   "random_seed": 42,
   "randomize_order": true,
-  "config_fingerprint": "f8cd0946b88ce18f7297c3e03e3198b7d1e5366404cc5d1c527368548002a81c",
+  "config_fingerprint": "a40d8fa992f8d2da44c5dbe4227644753a6aa917be767b09c697292a59e34baa",
   "configuration": {
     "model_id": "gemini-4-hydrogen",
     "thinking_levels": [

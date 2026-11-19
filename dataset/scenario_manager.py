@@ -806,6 +806,7 @@ def import_dataset_version(
         "scope_issues": validation_report["scope_issues"],
         # Technical validation NEVER auto-approves
         "researcher_approval_status": "pending_review",
+        "reviewer_id": None,
         "approved_at_utc": None,
     }
     registry.setdefault("versions", []).append(entry)
@@ -842,29 +843,148 @@ def verify_version_integrity(dataset_version: str) -> Dict[str, Any]:
     }
 
 
-def set_version_approval(dataset_version: str, approval_status: str) -> Dict[str, Any]:
-    """Explicitly record researcher approval/rejection and verify/freeze SHA-256 for approved datasets."""
+def load_review_log(dataset_version: str) -> Dict[str, Any]:
+    """Load non-mutating per-scenario human review ledger for an immutable dataset version."""
+    log_path = DATASET_VERSIONS_DIR / dataset_version / "review_log.json"
+    if not log_path.exists():
+        return {
+            "dataset_version": dataset_version,
+            "scenario_reviews": {},
+            "version_signoffs": [],
+        }
+    try:
+        data = json.loads(log_path.read_text(encoding="utf-8"))
+        data.setdefault("dataset_version", dataset_version)
+        data.setdefault("scenario_reviews", {})
+        data.setdefault("version_signoffs", [])
+        return data
+    except Exception:
+        return {
+            "dataset_version": dataset_version,
+            "scenario_reviews": {},
+            "version_signoffs": [],
+        }
+
+
+def save_review_log(dataset_version: str, review_log: Dict[str, Any]) -> Path:
+    """Persist per-scenario human review ledger without modifying immutable scenarios.json."""
+    ver_dir = DATASET_VERSIONS_DIR / dataset_version
+    ver_dir.mkdir(parents=True, exist_ok=True)
+    log_path = ver_dir / "review_log.json"
+    log_path.write_text(
+        json.dumps(review_log, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return log_path
+
+
+def record_scenario_review(
+    dataset_version: str,
+    scenario_id: str,
+    decision: str,
+    reviewer_id: str,
+    notes: str = "",
+) -> Dict[str, Any]:
+    """Record an individual scenario review decision with reviewer_id & timestamp (preserves dataset SHA-256)."""
+    if decision not in ("pending_review", "approved", "rejected"):
+        raise ValueError("decision must be 'pending_review', 'approved', or 'rejected'.")
+    clean_reviewer = str(reviewer_id or "").strip()
+    if not clean_reviewer:
+        raise ValueError("reviewer_id is required to record a human scenario review.")
+
+    entry = get_version_entry(dataset_version)
+    if entry is None:
+        raise KeyError(f"Dataset version '{dataset_version}' not found in registry.")
+    scenarios = load_scenarios_for_version(dataset_version)
+    if not any(str(s.get("scenario_id")) == str(scenario_id) for s in scenarios):
+        raise KeyError(f"Scenario '{scenario_id}' not found in dataset version '{dataset_version}'.")
+
+    log_data = load_review_log(dataset_version)
+    ts = datetime.now(timezone.utc).isoformat()
+    log_data.setdefault("scenario_reviews", {})[str(scenario_id)] = {
+        "scenario_id": str(scenario_id),
+        "decision": decision,
+        "reviewer_id": clean_reviewer,
+        "reviewed_at_utc": ts,
+        "notes": str(notes or "").strip(),
+    }
+    save_review_log(dataset_version, log_data)
+
+    # If a scenario is rejected while version was previously approved, automatically revoke version approval
+    if decision == "rejected" and entry.get("researcher_approval_status") == "approved":
+        set_version_approval(
+            dataset_version,
+            "pending_review",
+            reviewer_id=clean_reviewer,
+            notes=f"Auto-revoked after scenario {scenario_id} marked rejected.",
+        )
+
+    return log_data["scenario_reviews"][str(scenario_id)]
+
+
+def set_version_approval(
+    dataset_version: str,
+    approval_status: str,
+    reviewer_id: Optional[str] = None,
+    notes: str = "",
+) -> Dict[str, Any]:
+    """Explicitly record researcher approval/rejection, reviewer_id, and freeze SHA-256 for approved datasets."""
     if approval_status not in ("pending_review", "approved", "rejected"):
         raise ValueError("Invalid approval_status.")
+    clean_reviewer = str(reviewer_id).strip() if reviewer_id and str(reviewer_id).strip() else None
     registry = load_registry()
     for entry in registry.get("versions", []):
         if entry["dataset_version"] == dataset_version:
+            review_log = load_review_log(dataset_version)
+            rejected_sids = [
+                sid
+                for sid, info in review_log.get("scenario_reviews", {}).items()
+                if info.get("decision") == "rejected"
+            ]
             if approval_status == "approved":
                 if entry["technical_validation_status"] != "valid":
                     raise ValueError(
                         "Cannot approve a dataset version that failed technical validation."
                     )
+                if rejected_sids:
+                    raise ValueError(
+                        f"Cannot approve dataset version '{dataset_version}' because scenario(s) "
+                        f"{rejected_sids} were rejected during human review. Curate a new dataset version instead."
+                    )
                 integrity = verify_version_integrity(dataset_version)
                 if not integrity["intact"]:
                     raise ValueError(integrity["error"] or "Dataset SHA-256 integrity check failed.")
+                ts = datetime.now(timezone.utc).isoformat()
                 entry["approved_sha256"] = integrity["actual_sha256"]
-                entry["approved_at_utc"] = datetime.now(timezone.utc).isoformat()
+                entry["approved_at_utc"] = ts
+                entry["reviewer_id"] = clean_reviewer
                 entry["overall_report_classification"] = "PASS"
+                review_log.setdefault("version_signoffs", []).append(
+                    {
+                        "approval_status": "approved",
+                        "reviewer_id": clean_reviewer,
+                        "timestamp_utc": ts,
+                        "approved_sha256": integrity["actual_sha256"],
+                        "notes": str(notes or "").strip(),
+                    }
+                )
+                save_review_log(dataset_version, review_log)
             else:
                 entry["approved_at_utc"] = None
+                entry["reviewer_id"] = clean_reviewer if approval_status == "rejected" else None
                 if approval_status == "pending_review":
                     entry["approved_sha256"] = None
                     entry["overall_report_classification"] = "NEEDS HUMAN REVIEW"
+                else:
+                    entry["overall_report_classification"] = "FAIL"
+                review_log.setdefault("version_signoffs", []).append(
+                    {
+                        "approval_status": approval_status,
+                        "reviewer_id": clean_reviewer,
+                        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                        "notes": str(notes or "").strip(),
+                    }
+                )
+                save_review_log(dataset_version, review_log)
             entry["researcher_approval_status"] = approval_status
             save_registry(registry)
             return entry

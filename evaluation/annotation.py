@@ -26,6 +26,7 @@ ANNOTATION_COLUMNS = [
     "thinking_level",
     "repetition",
     "annotator_id",
+    "coder_pseudonym",
     "annotation_label",
     "usefulness_score",
     "notes",
@@ -61,6 +62,7 @@ def save_annotation(
     usefulness_score: Optional[int] = None,
     notes: str = "",
     path: Path = HUMAN_ANNOTATIONS_CSV,
+    coder_pseudonym: str = "",
 ) -> pd.DataFrame:
     """Upsert one human annotation for (trial_id, annotator_id) without altering raw JSONL."""
     if annotation_label not in ANNOTATION_LABELS:
@@ -93,6 +95,7 @@ def save_annotation(
         "thinking_level": str(thinking_level).upper(),
         "repetition": int(repetition),
         "annotator_id": str(annotator_id),
+        "coder_pseudonym": str(coder_pseudonym or "").strip(),
         "annotation_label": str(annotation_label),
         "usefulness_score": int(usefulness_score) if usefulness_score is not None else None,
         "notes": str(notes).strip(),

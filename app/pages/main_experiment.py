@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from app.components import render_metric_card, render_page_header
-from config import MAIN_TARGET_CALLS, MODALITIES, THINKING_LEVELS
+from config import MAIN_TARGET_CALLS, MAIN_TARGET_REPETITIONS, MODALITIES, THINKING_LEVELS
 from dataset.scenario_manager import load_active_dataset
 from experiment.experiment_controller import get_controller
 from experiment.experiment_runner import build_trial_plan, filter_pending_trials
@@ -67,7 +67,14 @@ def render() -> None:
             "Thinking Levels", options=list(THINKING_LEVELS), default=list(THINKING_LEVELS)
         )
     with col2:
-        reps = st.number_input("Repetitions per Condition", min_value=1, max_value=5, value=3, step=1)
+        reps = st.number_input(
+            "Repetitions per Condition (Fixed Confirmatory Protocol: 3)",
+            min_value=MAIN_TARGET_REPETITIONS,
+            max_value=MAIN_TARGET_REPETITIONS,
+            value=MAIN_TARGET_REPETITIONS,
+            step=1,
+            disabled=True,
+        )
         randomize_order = st.checkbox("Randomized Execution Order", value=True)
         max_out = st.number_input(
             "Output Token Limit", min_value=64, max_value=65536, value=int(cfg.max_output_tokens), step=256
@@ -79,7 +86,7 @@ def render() -> None:
     main_cfg = load_runtime_config()
     main_cfg.modalities = selected_modalities or list(MODALITIES)
     main_cfg.thinking_levels = selected_levels or list(THINKING_LEVELS)
-    main_cfg.repetitions = int(reps)
+    main_cfg.repetitions = MAIN_TARGET_REPETITIONS
     main_cfg.randomize_order = bool(randomize_order)
     main_cfg.max_output_tokens = int(max_out)
     main_cfg.timeout_seconds = float(timeout_sec)
@@ -134,10 +141,13 @@ def render() -> None:
             value=False,
         )
 
+    readiness = verify_main_experiment_readiness(main_cfg, explicit_approved=explicit_approval)
+
     b1, b2, b3, b4 = st.columns(4)
     is_running = snap["is_alive"]
     can_start = (
         not is_running
+        and readiness["ready"]
         and explicit_approval
         and is_approved
         and is_api_fully_validated()
@@ -183,7 +193,6 @@ def render() -> None:
         st.rerun()
 
     st.subheader("Pre-Execution Readiness Verification")
-    readiness = verify_main_experiment_readiness(main_cfg, explicit_approved=explicit_approval)
     st.dataframe(pd.DataFrame(readiness["checks"]), use_container_width=True, hide_index=True)
 
     st.subheader("Execution History")
@@ -196,7 +205,8 @@ def render() -> None:
     if st.button("Generate Main Manifest & Post-Execution Status Reports"):
         paths = generate_main_post_run_reports(explicit_approved=explicit_approval)
         st.success(
-            "Generated `results/experiment_manifest.json`, `research/main_experiment_report.md`, "
-            "`research/missing_failed_trials_report.md`, and `research/annotation_readiness_report.md`."
+            "Generated `results/main/main_experiment_manifest.json`, `results/experiment_manifest.json`, "
+            "`research/main_experiment_report.md`, `research/missing_failed_trials_report.md`, "
+            "and `research/annotation_readiness_report.md`."
         )
         st.caption(f"Files written: {', '.join(p.name for p in paths.values())}")

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bash -c 'exec python3 -m streamlit run app/streamlit_app.py --server.port=3000 --server.address=0.0.0.0 --server.headless=true --server.enableCORS=false --server.enableXsrfProtection=false --browser.gatherUsageStats=false' _",
+    "dev": "bash start_dev.sh",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",

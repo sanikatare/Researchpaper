@@ -315,13 +315,21 @@ def classify_finding_robustness(rob: Dict[str, Any]) -> pd.DataFrame:
     # 5. Model & Dataset Version Consistency
     ver_c = rob["model_version_consistency"]
     ds_v = rob["dataset_version_comparison"]
-    drift = (not ver_c["consistent"]) or ds_v["multiple_versions"]
-    checks.append({
-        "dimension": "Model & Dataset Version Stability",
-        "classification": "Sensitive" if drift else "Robust",
-        "metric_evidence": f"Model versions={len(ver_c['observed_versions'])}, Dataset versions={len(ds_v['versions_observed'])}",
-        "interpretation": "Consistent model and dataset version across trials." if not drift else "Multiple model/dataset versions detected; stratify conclusions by version.",
-    })
+    if total == 0:
+        checks.append({
+            "dimension": "Model & Dataset Version Stability",
+            "classification": "Insufficient Data",
+            "metric_evidence": "0 total records",
+            "interpretation": "No trials recorded.",
+        })
+    else:
+        drift = (not ver_c["consistent"]) or ds_v["multiple_versions"]
+        checks.append({
+            "dimension": "Model & Dataset Version Stability",
+            "classification": "Sensitive" if drift else "Robust",
+            "metric_evidence": f"Model versions={len(ver_c['observed_versions'])}, Dataset versions={len(ds_v['versions_observed'])}",
+            "interpretation": "Consistent model and dataset version across trials." if not drift else "Multiple model/dataset versions detected; stratify conclusions by version.",
+        })
 
     return pd.DataFrame(checks)
 

@@ -22,6 +22,7 @@ from google.genai import types
 from PIL import Image
 
 from config import (
+    API_READINESS_REPORT_MD,
     API_VALIDATION_STATE_PATH,
     DEFAULT_MODEL_ID,
     RESULTS_DIR,
@@ -707,39 +708,45 @@ def call_gemini_hydrogen(
     )
 
 
+def _default_validation_state() -> Dict[str, Any]:
+    return {
+        "model_id": DEFAULT_MODEL_ID,
+        "sdk_version": get_sdk_version(),
+        "levels": {
+            lvl: {
+                "validated": False,
+                "supported_by_endpoint": None,
+                "modality_tested": None,
+                "last_tested_utc": None,
+                "error": None,
+            }
+            for lvl in THINKING_LEVELS
+        },
+        "multimodal_probe": {
+            "validated": False,
+            "thinking_level": None,
+            "last_tested_utc": None,
+            "error": None,
+        },
+    }
+
+
 def load_validation_state() -> Dict[str, Any]:
     """Load persisted thinking-level validation state (contains no credentials)."""
     ensure_directories()
     if not API_VALIDATION_STATE_PATH.exists():
-        return {
-            "model_id": DEFAULT_MODEL_ID,
-            "sdk_version": get_sdk_version(),
-            "levels": {
-                lvl: {
-                    "validated": False,
-                    "supported_by_endpoint": None,
-                    "last_tested_utc": None,
-                    "error": None,
-                }
-                for lvl in THINKING_LEVELS
-            },
-        }
+        return _default_validation_state()
     try:
-        return json.loads(API_VALIDATION_STATE_PATH.read_text(encoding="utf-8"))
+        loaded = json.loads(API_VALIDATION_STATE_PATH.read_text(encoding="utf-8"))
+        default = _default_validation_state()
+        loaded.setdefault("multimodal_probe", default["multimodal_probe"])
+        levels = loaded.setdefault("levels", {})
+        for lvl in THINKING_LEVELS:
+            levels.setdefault(lvl, default["levels"][lvl])
+            levels[lvl].setdefault("modality_tested", None)
+        return loaded
     except Exception:
-        return {
-            "model_id": DEFAULT_MODEL_ID,
-            "sdk_version": get_sdk_version(),
-            "levels": {
-                lvl: {
-                    "validated": False,
-                    "supported_by_endpoint": None,
-                    "last_tested_utc": None,
-                    "error": None,
-                }
-                for lvl in THINKING_LEVELS
-            },
-        }
+        return _default_validation_state()
 
 
 def save_validation_state(state: Dict[str, Any]) -> None:
@@ -800,6 +807,7 @@ def test_single_thinking_level(
     levels[result.thinking_level] = {
         "validated": passed,
         "supported_by_endpoint": True if passed else (False if endpoint_rejected_level else None),
+        "modality_tested": result.modality,
         "last_tested_utc": result.timestamp_utc,
         "actual_model_version": result.actual_model_version,
         "latency_ms": result.latency_ms,
@@ -810,6 +818,19 @@ def test_single_thinking_level(
         "error": result.error_message,
         "response_preview": result.response_text[:300] if result.response_text else "",
     }
+    if image_path is not None:
+        state["multimodal_probe"] = {
+            "validated": passed,
+            "thinking_level": result.thinking_level,
+            "last_tested_utc": result.timestamp_utc,
+            "actual_model_version": result.actual_model_version,
+            "latency_ms": result.latency_ms,
+            "input_tokens": result.input_tokens,
+            "output_tokens": result.output_tokens,
+            "thinking_tokens": result.thinking_tokens,
+            "image_asset": Path(image_path).name,
+            "error": result.error_message,
+        }
     save_validation_state(state)
     return result
 
@@ -838,3 +859,95 @@ def test_all_thinking_levels(
         )
         results.append(res)
     return results
+
+
+def generate_api_readiness_report(
+    save_path: Path = API_READINESS_REPORT_MD,
+    endpoint_check: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Generate an honest Markdown API configuration & thinking-level readiness report."""
+    ensure_directories()
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    key_present = bool(get_api_key())
+    sdk_ver = get_sdk_version()
+    state = load_validation_state()
+    levels = state.get("levels", {})
+    mm = state.get("multimodal_probe", {})
+
+    validated_levels = [
+        lvl
+        for lvl in THINKING_LEVELS
+        if levels.get(lvl, {}).get("validated")
+        and levels.get(lvl, {}).get("supported_by_endpoint") is True
+    ]
+    all_four_ok = len(validated_levels) == len(THINKING_LEVELS)
+
+    if not key_present:
+        overall_status = "BLOCKED (GEMINI_API_KEY not configured in runtime environment)"
+    elif not all_four_ok:
+        missing = [lvl for lvl in THINKING_LEVELS if lvl not in validated_levels]
+        overall_status = f"INCOMPLETE / BLOCKED (unvalidated thinking levels: {', '.join(missing)})"
+    else:
+        overall_status = "READY (All 4 thinking levels live-validated)"
+
+    lines = [
+        "# Gemini 4 Hydrogen API Readiness Report",
+        "",
+        f"**Generated:** {ts}",
+        f"**Overall API Status:** `{overall_status}`",
+        f"**Target Model Identifier:** `{DEFAULT_MODEL_ID}` (`models/{DEFAULT_MODEL_ID}`)",
+        f"**Google GenAI SDK Version:** `{sdk_ver}`",
+        f"**`GEMINI_API_KEY` Configured:** `{key_present}` (credential values never stored in reports or logs)",
+        "",
+        "## 1. Model Endpoint Accessibility (`models.get`)",
+    ]
+    if endpoint_check is not None:
+        lines.extend([
+            f"- **Accessible:** `{endpoint_check.get('accessible')}`",
+            f"- **Endpoint Name:** `{endpoint_check.get('endpoint_name')}`",
+            f"- **Display Name:** `{endpoint_check.get('display_name')}`",
+            f"- **Input / Output Token Limits:** `{endpoint_check.get('input_token_limit')}` / `{endpoint_check.get('output_token_limit')}`",
+            f"- **Error:** `{endpoint_check.get('error') or 'None'}`",
+        ])
+    else:
+        lines.append("- Live `models.get` check not executed in this report generation pass.")
+
+    lines.extend([
+        "",
+        "## 2. Thinking-Level Endpoint Support Matrix",
+        "",
+        "| Thinking Level | Validated | Endpoint Supported | Modality Tested | Latency (ms) | Input / Output / Thinking Tokens | Last Tested (UTC) | Error |",
+        "|---|---|---|---|---|---|---|---|",
+    ])
+    for lvl in THINKING_LEVELS:
+        info = levels.get(lvl, {})
+        sup = info.get("supported_by_endpoint")
+        sup_lbl = "SUPPORTED" if sup is True else ("UNSUPPORTED" if sup is False else "UNTESTED")
+        tok_str = (
+            f"{info.get('input_tokens')}/{info.get('output_tokens')}/{info.get('thinking_tokens')}"
+            if any(info.get(k) is not None for k in ("input_tokens", "output_tokens", "thinking_tokens"))
+            else "Unavailable"
+        )
+        lat_str = f"{info['latency_ms']:.1f}" if info.get("latency_ms") is not None else "N/A"
+        lines.append(
+            f"| `{lvl}` | `{bool(info.get('validated'))}` | `{sup_lbl}` | "
+            f"`{info.get('modality_tested') or 'None'}` | {lat_str} | `{tok_str}` | "
+            f"`{info.get('last_tested_utc') or 'Never'}` | {info.get('error') or 'None'} |"
+        )
+
+    lines.extend([
+        "",
+        "## 3. Multimodal (`image_plus_text`) Probe Status",
+        f"- **Multimodal Probe Validated:** `{bool(mm.get('validated'))}`",
+        f"- **Thinking Level Used:** `{mm.get('thinking_level') or 'None'}`",
+        f"- **Last Tested (UTC):** `{mm.get('last_tested_utc') or 'Never'}`",
+        f"- **Error:** `{mm.get('error') or 'None'}`",
+        "",
+        "## 4. Verification Command",
+        "Run `.venv/bin/python validate_thinking_levels.py --include-multimodal` once `GEMINI_API_KEY` is set.",
+    ])
+
+    report = "\n".join(lines) + "\n"
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+    save_path.write_text(report, encoding="utf-8")
+    return report

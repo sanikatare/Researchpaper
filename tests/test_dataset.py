@@ -251,3 +251,44 @@ def test_csv_dataset_import_and_aistudio_integration_report(tmp_path, monkeypatc
     assert "Undocumented UI Dataset Retrieval APIs Used" in text
 
 
+def test_per_scenario_review_preserves_sha256_and_blocks_rejected_approval(tmp_path, monkeypatch) -> None:
+    _, pilot_scenarios = load_active_dataset("pilot")
+    monkeypatch.setattr(scenario_manager, "DATASET_REGISTRY_PATH", tmp_path / "reg.json")
+    monkeypatch.setattr(scenario_manager, "DATASET_VERSIONS_DIR", tmp_path / "versions")
+    (tmp_path / "versions").mkdir(parents=True, exist_ok=True)
+
+    raw = json.dumps({"scenarios": pilot_scenarios}).encode("utf-8")
+    entry = scenario_manager.import_dataset_version(
+        raw_bytes=raw,
+        filename="pilot.json",
+        dataset_name="Pilot-Review-Test",
+        dataset_version="v1.3.0-pilot",
+        dataset_scope="pilot",
+    )
+    orig_sha = entry["sha256"]
+    first_sid = pilot_scenarios[0]["scenario_id"]
+
+    rev = scenario_manager.record_scenario_review(
+        "v1.3.0-pilot", first_sid, "approved", reviewer_id="researcher_01", notes="Verified clean"
+    )
+    assert rev["decision"] == "approved"
+    assert rev["reviewer_id"] == "researcher_01"
+    assert rev["reviewed_at_utc"]
+    assert scenario_manager.verify_version_integrity("v1.3.0-pilot")["actual_sha256"] == orig_sha
+
+    # Rejecting a scenario blocks version approval until a new version is curated
+    scenario_manager.record_scenario_review(
+        "v1.3.0-pilot", first_sid, "rejected", reviewer_id="researcher_01", notes="Needs rewording"
+    )
+    with pytest.raises(ValueError, match="rejected"):
+        scenario_manager.set_version_approval("v1.3.0-pilot", "approved", reviewer_id="researcher_01")
+
+    # Reverting scenario to approved allows version approval with reviewer_id recorded
+    scenario_manager.record_scenario_review(
+        "v1.3.0-pilot", first_sid, "approved", reviewer_id="researcher_01", notes="Re-verified"
+    )
+    approved = scenario_manager.set_version_approval("v1.3.0-pilot", "approved", reviewer_id="researcher_01")
+    assert approved["reviewer_id"] == "researcher_01"
+    assert approved["approved_sha256"] == orig_sha
+
+

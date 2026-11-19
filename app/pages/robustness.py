@@ -20,7 +20,7 @@ def render() -> None:
         "Subgroup Stability, Repetition Variability, Annotation Sensitivity, LOSO Influence, Dataset Versions, and Findings Audit",
     )
 
-    df_proc = build_processed_results(None, save_csv=True)
+    df_proc = build_processed_results(None, save_csv=False)
     if df_proc.empty:
         st.info("No experimental observations recorded yet.")
         return

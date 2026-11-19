@@ -14,7 +14,9 @@ from dataset.scenario_manager import (
     import_dataset_version,
     load_active_dataset,
     load_registry,
+    load_review_log,
     load_scenarios_for_version,
+    record_scenario_review,
     resolve_image_path,
     set_active_version,
     set_version_approval,
@@ -130,6 +132,8 @@ def render() -> None:
                 "Scenarios": v["scenario_count"],
                 "Tech Valid": f"{v['technically_valid_count']}/{v['scenario_count']} ({v['technical_validation_status']})",
                 "Approval Status": v["researcher_approval_status"],
+                "Reviewer ID": v.get("reviewer_id") or "Pending",
+                "Approved At (UTC)": v.get("approved_at_utc") or "Pending",
                 "SHA-256 (Import)": (v.get("sha256") or "")[:16] + "...",
                 "Approved SHA-256": ((v.get("approved_sha256") or "")[:16] + "...") if v.get("approved_sha256") else "Pending",
                 "Integrity": "INTACT" if integrity["intact"] else "MISMATCH",
@@ -150,24 +154,49 @@ def render() -> None:
     if entry is None:
         return
 
+    review_log = load_review_log(selected_ver)
+    scenario_reviews = review_log.get("scenario_reviews", {})
+    rejected_count = sum(1 for r in scenario_reviews.values() if r.get("decision") == "rejected")
+    approved_scen_count = sum(1 for r in scenario_reviews.values() if r.get("decision") == "approved")
+
     is_approved = entry.get("researcher_approval_status") == "approved"
     scope = entry["dataset_scope"]
     val_rep = validate_dataset(scenarios, expected_scope=scope, dataset_approved=is_approved)
     integrity = verify_version_integrity(selected_ver)
 
+    reviewer_id = st.text_input(
+        "Reviewer ID (Required to Record Scenario Reviews or Dataset Version Approval)",
+        placeholder="e.g., researcher_01",
+        key=f"rev_id_{selected_ver}",
+    )
+    has_reviewer = bool(reviewer_id.strip())
+    if rejected_count > 0:
+        st.error(
+            f"{rejected_count} scenario(s) in `{selected_ver}` were marked `rejected`. "
+            "Export a revised dataset version from Google AI Studio and import it as a new immutable version."
+        )
+
     # Approval & Activation Controls (No content editing!)
     a1, a2, a3, a4 = st.columns(4)
     with a1:
-        can_approve = entry["technical_validation_status"] == "valid" and integrity["intact"]
+        can_approve = (
+            entry["technical_validation_status"] == "valid"
+            and integrity["intact"]
+            and rejected_count == 0
+            and has_reviewer
+        )
         if st.button(
             "Approve Version (Researcher)",
             type="primary",
             disabled=not can_approve or is_approved,
             use_container_width=True,
         ):
-            updated = set_version_approval(selected_ver, "approved")
+            updated = set_version_approval(
+                selected_ver, "approved", reviewer_id=reviewer_id.strip()
+            )
             st.success(
-                f"Researcher approved `{selected_ver}` (Approved SHA-256: `{updated['approved_sha256']}`)."
+                f"Researcher `{updated.get('reviewer_id')}` approved `{selected_ver}` "
+                f"(Approved SHA-256: `{updated['approved_sha256']}`)."
             )
             st.rerun()
     with a2:
@@ -176,7 +205,7 @@ def render() -> None:
             disabled=entry["researcher_approval_status"] == "pending_review",
             use_container_width=True,
         ):
-            set_version_approval(selected_ver, "pending_review")
+            set_version_approval(selected_ver, "pending_review", reviewer_id=reviewer_id.strip() or None)
             st.info(f"Reset approval for `{selected_ver}` to pending_review.")
             st.rerun()
     with a3:
@@ -199,6 +228,8 @@ def render() -> None:
     st.caption(
         f"Import SHA-256: `{entry.get('sha256')}` | "
         f"Approved SHA-256: `{entry.get('approved_sha256') or 'Not approved yet'}` | "
+        f"Reviewer: `{entry.get('reviewer_id') or 'Pending'}` | "
+        f"Per-Scenario Reviews: {approved_scen_count} approved, {rejected_count} rejected | "
         f"Disk Integrity: `{'INTACT' if integrity['intact'] else integrity['error']}`"
     )
 
@@ -258,6 +289,8 @@ def render() -> None:
                     "Image Ref": s["image_asset_reference"],
                     "Expected Class": s["expected_response_classification"],
                     "Report Status": report_by_sid.get(s["scenario_id"], {}).get("report_classification", "NEEDS HUMAN REVIEW"),
+                    "Scenario Review": scenario_reviews.get(s["scenario_id"], {}).get("decision", "pending_review"),
+                    "Reviewed By": scenario_reviews.get(s["scenario_id"], {}).get("reviewer_id", ""),
                 }
                 for s in filtered
             ]
@@ -283,6 +316,52 @@ def render() -> None:
                 f"— {scen['classification_rationale']}"
             )
             st.caption(f"Image Provenance: {scen['image_provenance']}")
+
+            cur_rev = scenario_reviews.get(sel_sid, {})
+            st.markdown(
+                f"**Current Scenario Review:** `{cur_rev.get('decision', 'pending_review')}` "
+                f"(Reviewer: `{cur_rev.get('reviewer_id') or 'None'}`, "
+                f"At: `{cur_rev.get('reviewed_at_utc') or 'Never'}`)"
+            )
+            rev_notes = st.text_input(
+                "Review Notes (Stored in review_log.json; scenario JSON remains immutable)",
+                value=cur_rev.get("notes", ""),
+                key=f"rev_notes_{selected_ver}_{sel_sid}",
+            )
+            rb1, rb2, rb3 = st.columns(3)
+            with rb1:
+                if st.button(
+                    "Approve Scenario",
+                    disabled=not has_reviewer,
+                    key=f"app_{selected_ver}_{sel_sid}",
+                    use_container_width=True,
+                ):
+                    record_scenario_review(
+                        selected_ver, sel_sid, "approved", reviewer_id.strip(), rev_notes
+                    )
+                    st.rerun()
+            with rb2:
+                if st.button(
+                    "Reject Scenario",
+                    disabled=not has_reviewer,
+                    key=f"rej_{selected_ver}_{sel_sid}",
+                    use_container_width=True,
+                ):
+                    record_scenario_review(
+                        selected_ver, sel_sid, "rejected", reviewer_id.strip(), rev_notes
+                    )
+                    st.rerun()
+            with rb3:
+                if st.button(
+                    "Reset Pending",
+                    disabled=not has_reviewer,
+                    key=f"pen_{selected_ver}_{sel_sid}",
+                    use_container_width=True,
+                ):
+                    record_scenario_review(
+                        selected_ver, sel_sid, "pending_review", reviewer_id.strip(), rev_notes
+                    )
+                    st.rerun()
         with p_right:
             img_ok, img_msg = check_image_valid(scen.get("image_asset_reference"))
             img_path = resolve_image_path(scen.get("image_asset_reference"))

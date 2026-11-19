@@ -301,3 +301,28 @@ def test_controller_pause_resume_stop_lifecycle(tmp_path, monkeypatch) -> None:
         assert ctrl.snapshot()["status"] == "COMPLETED"
         assert len(storage.load_trial_records("pilot")) == 8
 
+
+def test_locked_repetitions_enforced_when_approved_gate_enabled() -> None:
+    from dataset.scenario_manager import load_active_dataset
+
+    _, pilot_scenarios = load_active_dataset("pilot")
+    _, main_scenarios = load_active_dataset("main")
+
+    with pytest.raises(ValueError, match="repetitions=1"):
+        run_experiment_batch(
+            "pilot",
+            pilot_scenarios,
+            ExperimentConfig(repetitions=2),
+            require_approved_dataset=True,
+            client=_MockClient(),
+        )
+
+    with pytest.raises(ValueError, match="repetitions=3"):
+        run_experiment_batch(
+            "main",
+            main_scenarios,
+            ExperimentConfig(repetitions=1),
+            require_approved_dataset=True,
+            client=_MockClient(),
+        )
+

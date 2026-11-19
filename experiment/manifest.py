@@ -13,12 +13,17 @@ from config import (
     ANNOTATION_READINESS_MD,
     DEFAULT_MODEL_ID,
     EXPERIMENT_MANIFEST_JSON,
+    MAIN_MANIFEST_JSON,
     MAIN_REPORT_MD,
     MAIN_TARGET_CALLS,
     MAIN_TARGET_REPETITIONS,
     MAIN_TARGET_SCENARIOS,
     MISSING_FAILED_REPORT_MD,
     MODALITIES,
+    PILOT_MANIFEST_JSON,
+    PILOT_REPORT_MD,
+    PILOT_TARGET_CALLS,
+    PILOT_TARGET_REPETITIONS,
     RESEARCH_DIR,
     SOFTWARE_VERSION,
     THINKING_LEVELS,
@@ -42,11 +47,27 @@ from experiment.storage import (
 
 def build_experiment_manifest(
     experiment_type: Optional[str] = None,
-    save_path: Path = EXPERIMENT_MANIFEST_JSON,
+    save_path: Optional[Path] = None,
     config: Optional[ExperimentConfig] = None,
 ) -> Dict[str, Any]:
     """Generate experiment run manifest capturing dataset hash, model, config, seed, and execution counts."""
-    cfg = config or load_runtime_config()
+    if save_path is None:
+        if experiment_type == "pilot":
+            save_path = PILOT_MANIFEST_JSON
+        elif experiment_type == "main":
+            save_path = MAIN_MANIFEST_JSON
+        else:
+            save_path = EXPERIMENT_MANIFEST_JSON
+
+    if config is not None:
+        cfg = config
+    else:
+        cfg = load_runtime_config()
+        if experiment_type == "pilot":
+            cfg.repetitions = PILOT_TARGET_REPETITIONS
+        elif experiment_type == "main":
+            cfg.repetitions = MAIN_TARGET_REPETITIONS
+
     sdk_ver = get_sdk_version()
     pilot_entry, _ = load_active_dataset("pilot")
     main_entry, _ = load_active_dataset("main")
@@ -91,9 +112,16 @@ def build_experiment_manifest(
         if target_entry
         else None
     )
+    target_calls = (
+        PILOT_TARGET_CALLS
+        if experiment_type == "pilot"
+        else (MAIN_TARGET_CALLS if experiment_type == "main" else PILOT_TARGET_CALLS + MAIN_TARGET_CALLS)
+    )
 
     manifest: Dict[str, Any] = {
         "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "experiment_scope": experiment_type or "unified",
+        "target_calls": target_calls,
         "model_id": cfg.model_id,
         "software_version": SOFTWARE_VERSION,
         "sdk_version": sdk_ver,
@@ -186,8 +214,13 @@ def verify_main_experiment_readiness(
     config: Optional[ExperimentConfig] = None,
     explicit_approved: bool = False,
 ) -> Dict[str, Any]:
-    """Audit all 9 pre-execution prerequisites for the 1,440-call main experiment."""
-    cfg = config or load_runtime_config()
+    """Audit all pre-execution prerequisites for the 1,440-call main experiment."""
+    if config is not None:
+        cfg = config
+    else:
+        cfg = load_runtime_config()
+        cfg.repetitions = MAIN_TARGET_REPETITIONS
+
     main_entry, main_scenarios = load_active_dataset("main")
     val_state = load_validation_state()
     levels_state = val_state.get("levels", {})
@@ -207,7 +240,30 @@ def verify_main_experiment_readiness(
         and levels_state.get(lvl, {}).get("supported_by_endpoint") is True
     ]
 
+    pilot_recs = load_trial_records("pilot")
+    pilot_completed = len(
+        {
+            condition_key(
+                str(r.get("scenario_id")),
+                str(r.get("modality")),
+                str(r.get("thinking_level")),
+                int(r.get("repetition", 1)),
+            )
+            for r in pilot_recs
+            if r.get("status") in ("success", "blocked")
+        }
+    )
+    pilot_report_ok = PILOT_REPORT_MD.exists()
+
     checks = [
+        {
+            "check": "Pilot Experiment Completed & Report Generated (96 Calls)",
+            "passed": pilot_completed >= PILOT_TARGET_CALLS and pilot_report_ok,
+            "detail": (
+                f"Pilot completed={pilot_completed}/{PILOT_TARGET_CALLS}, "
+                f"PilotReportExists={pilot_report_ok}"
+            ),
+        },
         {
             "check": "Approved Main Dataset Version & SHA-256",
             "passed": ds_approved and ds_hash_ok and len(main_scenarios) == MAIN_TARGET_SCENARIOS,
@@ -233,9 +289,17 @@ def verify_main_experiment_readiness(
             "detail": f"Modalities={cfg.modalities}",
         },
         {
-            "check": "Confirmatory Repetitions & 1,440 Target",
-            "passed": len(main_scenarios) * len(MODALITIES) * len(THINKING_LEVELS) * MAIN_TARGET_REPETITIONS == MAIN_TARGET_CALLS,
-            "detail": f"Target design={len(main_scenarios)} × 2 × 4 × {MAIN_TARGET_REPETITIONS} = {MAIN_TARGET_CALLS} calls",
+            "check": "Confirmatory Repetitions (3) & 1,440 Target",
+            "passed": (
+                cfg.repetitions == MAIN_TARGET_REPETITIONS
+                and len(main_scenarios) * len(cfg.modalities) * len(cfg.thinking_levels) * cfg.repetitions == MAIN_TARGET_CALLS
+            ),
+            "detail": (
+                f"Configured design={len(main_scenarios)} × {len(cfg.modalities)} × "
+                f"{len(cfg.thinking_levels)} × {cfg.repetitions} = "
+                f"{len(main_scenarios) * len(cfg.modalities) * len(cfg.thinking_levels) * cfg.repetitions} "
+                f"(target {MAIN_TARGET_CALLS})"
+            ),
         },
         {
             "check": "Valid Runtime Configuration & Random Seed",
@@ -261,14 +325,16 @@ def verify_main_experiment_readiness(
 
 def generate_main_post_run_reports(
     save_dir: Path = RESEARCH_DIR,
-    manifest_path: Path = EXPERIMENT_MANIFEST_JSON,
+    manifest_path: Path = MAIN_MANIFEST_JSON,
     explicit_approved: bool = False,
 ) -> Dict[str, Path]:
-    """Generate the 5 post-execution main experiment reports/manifests from actual main state (no fabrication)."""
+    """Generate post-execution main experiment reports & manifests from actual main state (no fabrication)."""
     save_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     manifest = build_experiment_manifest("main", save_path=manifest_path)
+    if manifest_path != EXPERIMENT_MANIFEST_JSON and manifest_path.parent.parent == EXPERIMENT_MANIFEST_JSON.parent:
+        build_experiment_manifest(None, save_path=EXPERIMENT_MANIFEST_JSON)
     readiness = verify_main_experiment_readiness(explicit_approved=explicit_approved)
     main_records = load_trial_records("main")
     df_main = pd.DataFrame(main_records) if main_records else pd.DataFrame()

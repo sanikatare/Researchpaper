@@ -220,3 +220,28 @@ def test_streamlit_10_pages_and_google_light_theme() -> None:
     for page_name in page_names:
         at.sidebar.radio[0].set_value(page_name).run()
         assert not at.exception, f"Exception on page '{page_name}': {at.exception}"
+
+
+def test_separate_pilot_main_manifests_and_pilot_gate(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(storage, "PILOT_DIR", tmp_path / "pilot")
+    monkeypatch.setattr(storage, "MAIN_DIR", tmp_path / "main")
+    monkeypatch.setattr(storage, "RESULTS_DIR", tmp_path)
+    monkeypatch.setattr(manifest, "PILOT_MANIFEST_JSON", tmp_path / "pilot" / "pilot_experiment_manifest.json")
+    monkeypatch.setattr(manifest, "MAIN_MANIFEST_JSON", tmp_path / "main" / "main_experiment_manifest.json")
+    monkeypatch.setattr(manifest, "PILOT_REPORT_MD", tmp_path / "pilot_report.md")
+    (tmp_path / "pilot").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "main").mkdir(parents=True, exist_ok=True)
+
+    p_man = manifest.build_experiment_manifest("pilot")
+    m_man = manifest.build_experiment_manifest("main")
+    assert p_man["experiment_scope"] == "pilot"
+    assert p_man["target_calls"] == 96
+    assert p_man["configuration"]["repetitions"] == 1
+    assert m_man["experiment_scope"] == "main"
+    assert m_man["target_calls"] == 1440
+    assert m_man["configuration"]["repetitions"] == 3
+
+    readiness = manifest.verify_main_experiment_readiness(explicit_approved=False)
+    pilot_chk = next(c for c in readiness["checks"] if "Pilot Experiment Completed" in c["check"])
+    assert pilot_chk["passed"] is False
+    assert readiness["ready"] is False

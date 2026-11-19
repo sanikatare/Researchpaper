@@ -6,9 +6,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from config import DEFAULT_MODEL_ID, THINKING_LEVELS, get_api_key
+from config import API_READINESS_REPORT_MD, DEFAULT_MODEL_ID, THINKING_LEVELS, get_api_key
 from dataset.scenario_manager import resolve_image_path
 from experiment.hydrogen_client import (
+    generate_api_readiness_report,
     get_sdk_version,
     test_single_thinking_level,
     verify_model_endpoint,
@@ -49,6 +50,7 @@ def main() -> int:
     print(f"google-genai SDK version: {get_sdk_version()}")
     api_key = get_api_key()
     if not api_key:
+        generate_api_readiness_report(API_READINESS_REPORT_MD)
         print(
             "ERROR: GEMINI_API_KEY is not set in environment variables or .env. "
             "Set GEMINI_API_KEY and re-run.",
@@ -59,6 +61,7 @@ def main() -> int:
     print(f"Checking model endpoint: {args.model}")
     ep = verify_model_endpoint(model_id=args.model, timeout_seconds=args.timeout)
     if not ep["accessible"]:
+        generate_api_readiness_report(API_READINESS_REPORT_MD, endpoint_check=ep)
         print(f"Endpoint check failed: {ep['error']}", file=sys.stderr)
         return 1
     print(
@@ -107,6 +110,8 @@ def main() -> int:
             all_ok = False
             print(f"Multimodal error: {mm_res.error_message}", file=sys.stderr)
 
+    generate_api_readiness_report(API_READINESS_REPORT_MD, endpoint_check=ep)
+    print(f"API readiness report written to {API_READINESS_REPORT_MD}")
     print("\nValidation summary:", "ALL 4 LEVELS VALIDATED" if all_ok else "VALIDATION INCOMPLETE / FAILED")
     return 0 if all_ok else 1
 

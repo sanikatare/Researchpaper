@@ -330,3 +330,31 @@ def test_retry_exhaustion_non_retryable_and_blocked(tmp_path, monkeypatch) -> No
     assert res_blocked.block_reason == "SAFETY"
     assert res_blocked.response_text == ""
 
+
+def test_api_readiness_report_and_multimodal_probe(tmp_path, monkeypatch) -> None:
+    val_path = tmp_path / "api_validation_state.json"
+    monkeypatch.setattr(hydrogen_client, "API_VALIDATION_STATE_PATH", val_path)
+    monkeypatch.setattr(hydrogen_client, "get_api_key", lambda: "AIzaFakeTestKey123456")
+
+    fake = _FakeClient()
+    hydrogen_client.test_all_thinking_levels(max_retries=0, client=fake)
+    img_path = resolve_image_path("scn-001.png")
+    hydrogen_client.test_single_thinking_level("HIGH", image_path=img_path, max_retries=0, client=fake)
+
+    state = hydrogen_client.load_validation_state()
+    assert state["levels"]["LOW"]["modality_tested"] == "text_only"
+    assert state["multimodal_probe"]["validated"] is True
+    assert state["multimodal_probe"]["image_asset"] == "scn-001.png"
+
+    rep_path = tmp_path / "api_readiness_report.md"
+    ep = verify_model_endpoint(client=fake)
+    rep_md = hydrogen_client.generate_api_readiness_report(save_path=rep_path, endpoint_check=ep)
+    assert rep_path.exists()
+    assert "READY (All 4 thinking levels live-validated)" in rep_md
+    assert "AIzaFakeTestKey123456" not in rep_md
+
+    # When API key is missing, report must honestly say BLOCKED
+    monkeypatch.setattr(hydrogen_client, "get_api_key", lambda: None)
+    rep_blocked = hydrogen_client.generate_api_readiness_report(save_path=rep_path)
+    assert "BLOCKED (GEMINI_API_KEY not configured" in rep_blocked
+

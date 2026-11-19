@@ -259,7 +259,18 @@ def _render_single_trial_coder(
             else ""
         )
 
+        prev_pseudo = (
+            str(existing.iloc[0]["coder_pseudonym"])
+            if (not existing.empty and "coder_pseudonym" in existing.columns and pd.notna(existing.iloc[0]["coder_pseudonym"]))
+            else ""
+        )
+
         with st.form(f"ann_form_{annotator_id}_{trial_id}"):
+            coder_pseudonym = st.text_input(
+                "Pseudonymous Annotator ID (Optional)",
+                value=prev_pseudo,
+                placeholder="e.g., R1_Anon",
+            )
             selected_label = st.radio(
                 "Response Classification",
                 options=list(ANNOTATION_LABELS),
@@ -295,6 +306,7 @@ def _render_single_trial_coder(
                     annotation_label=selected_label,
                     usefulness_score=usefulness if selected_label != "invalid_trial" else None,
                     notes=notes,
+                    coder_pseudonym=coder_pseudonym,
                 )
                 build_processed_results(None, save_csv=True)
                 st.success(f"Saved {annotator_id} annotation for {trial_id}.")

@@ -246,3 +246,27 @@ def test_pilot_report_generation_covers_all_9_sections(tmp_path) -> None:
     assert "Unmatched or incomplete pilot scenarios: 0 (None)" in report
     assert "category balance: {'clearly_benign': 4, 'sensitive_looking_legitimate': 4, 'genuinely_unsafe': 4}" in report
     assert "cost estimation is omitted" in report
+    assert "## 11. Empirical Observations vs. Pre-Main Recommendations" in report
+    assert "Empirical Observations (Observed in Recorded Pilot Trials Only)" in report
+    assert "Pre-Main Recommendations (Researcher Action Items Before Main Run)" in report
+
+
+def test_empty_robustness_and_power_never_fabricate_robust_or_zero_icc(tmp_path) -> None:
+    from evaluation.statistical_analysis import compute_statistical_power_assessment
+
+    rob_empty = run_robustness_suite(pd.DataFrame())
+    findings = rob_empty["robustness_findings"]
+    assert not findings.empty
+    assert (findings["classification"] == "Insufficient Data").all()
+
+    pwr_empty = compute_statistical_power_assessment(pd.DataFrame())
+    obs_rows = pwr_empty[pwr_empty["assessment_scope"] == "Observed Evaluable Sample"]
+    assert obs_rows["estimated_icc"].isna().all()
+    assert (obs_rows["status"] == "insufficient_data").all()
+
+    ann_csv = tmp_path / "pseudo_ann.csv"
+    df_a = save_annotation(
+        "t1", "pilot", "SCN-001", "clearly_benign", "text_only", "LOW", 1,
+        "annotator_1", "safe_completion", 5, "ok", path=ann_csv, coder_pseudonym="R1_Anon",
+    )
+    assert df_a.iloc[0]["coder_pseudonym"] == "R1_Anon"

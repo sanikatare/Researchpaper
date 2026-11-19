@@ -6,10 +6,17 @@ import pandas as pd
 import streamlit as st
 
 from app.components import render_metric_card, render_page_header
-from config import DEFAULT_MODEL_ID, THINKING_LEVELS, get_api_key, mask_api_key
+from config import (
+    API_READINESS_REPORT_MD,
+    DEFAULT_MODEL_ID,
+    THINKING_LEVELS,
+    get_api_key,
+    mask_api_key,
+)
 from dataset.scenario_manager import resolve_image_path
 from experiment.hydrogen_client import (
     API_ERROR_LOG_PATH,
+    generate_api_readiness_report,
     get_sdk_version,
     load_validation_state,
     test_single_thinking_level,
@@ -222,6 +229,7 @@ def render() -> None:
                 "Thinking Level": lvl,
                 "Validated": "VALIDATED" if info.get("validated") else "NOT VALIDATED",
                 "Endpoint Supported": supported_label,
+                "Modality Tested": info.get("modality_tested") or "None",
                 "Actual Model Version": info.get("actual_model_version") or "N/A",
                 "Latency (ms)": info.get("latency_ms"),
                 "Input Tokens": info.get("input_tokens"),
@@ -232,6 +240,29 @@ def render() -> None:
             }
         )
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+    mm_probe = val_state.get("multimodal_probe", {})
+    st.caption(
+        f"Multimodal (`image_plus_text`) Probe: "
+        f"`{'VALIDATED' if mm_probe.get('validated') else 'NOT VALIDATED'}` "
+        f"(level={mm_probe.get('thinking_level') or 'N/A'}, last_tested={mm_probe.get('last_tested_utc') or 'Never'})"
+    )
+
+    rep_col1, rep_col2 = st.columns(2)
+    with rep_col1:
+        if st.button("Generate API Readiness Report (MD)", use_container_width=True):
+            rep_md = generate_api_readiness_report(API_READINESS_REPORT_MD)
+            st.success("Generated `research/api_readiness_report.md`.")
+            st.markdown(rep_md)
+    with rep_col2:
+        if API_READINESS_REPORT_MD.exists():
+            st.download_button(
+                "Download API Readiness Report (MD)",
+                data=API_READINESS_REPORT_MD.read_text(encoding="utf-8"),
+                file_name="api_readiness_report.md",
+                mime="text/markdown",
+                use_container_width=True,
+            )
 
     with st.expander("API Error Log (results/api_errors.log)"):
         if API_ERROR_LOG_PATH.exists():

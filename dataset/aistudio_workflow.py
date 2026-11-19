@@ -171,7 +171,7 @@ def write_integration_validation_report(
             "",
             "## 4. Next Verification Steps",
             "1. Configure `GEMINI_API_KEY` and enable **Project Logging** in Google AI Studio.",
-            "2. Run `python3 validate_thinking_levels.py --include-multimodal` to validate `LOW`, `MEDIUM`, `HIGH`, and `XHIGH` against `models/gemini-4-hydrogen`.",
+            "2. Run `.venv/bin/python validate_thinking_levels.py --include-multimodal` to validate `LOW`, `MEDIUM`, `HIGH`, and `XHIGH` against `models/gemini-4-hydrogen`.",
             "3. Confirm the resulting probe requests appear in the Google AI Studio **Logs** UI.",
             "4. Grant explicit Researcher Approval to `v1.0.0-pilot` before running the 96-call Pilot, and wait for pilot review before executing the 1,440-call Main experiment.",
             "",

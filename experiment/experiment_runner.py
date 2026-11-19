@@ -10,7 +10,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from config import SOFTWARE_VERSION, ExperimentConfig
+from config import (
+    MAIN_TARGET_REPETITIONS,
+    PILOT_TARGET_REPETITIONS,
+    SOFTWARE_VERSION,
+    ExperimentConfig,
+)
 from dataset.scenario_manager import get_version_entry, verify_version_integrity
 from experiment.hydrogen_client import (
     TrialCallResult,
@@ -250,6 +255,16 @@ def run_experiment_batch(
     resolved_hash = dataset_hash
 
     if require_approved_dataset:
+        if experiment_type == "pilot" and config.repetitions != PILOT_TARGET_REPETITIONS:
+            raise ValueError(
+                f"Pilot experiment requires repetitions={PILOT_TARGET_REPETITIONS} (96-call design), "
+                f"got {config.repetitions}."
+            )
+        if experiment_type == "main" and config.repetitions != MAIN_TARGET_REPETITIONS:
+            raise ValueError(
+                f"Main experiment requires repetitions={MAIN_TARGET_REPETITIONS} (1,440-call design), "
+                f"got {config.repetitions}."
+            )
         if not resolved_ver:
             raise PermissionError("Approved versioned scenario dataset is required.")
         entry = get_version_entry(str(resolved_ver))

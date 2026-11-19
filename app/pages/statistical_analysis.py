@@ -20,7 +20,7 @@ def render() -> None:
         "Descriptive 95% CIs, Paired McNemar & Wilcoxon Tests, Clustered Bootstrap, Mixed-Effects & GEE Logistic Regression, and Power Assessment",
     )
 
-    df_proc = build_processed_results(None, save_csv=True)
+    df_proc = build_processed_results(None, save_csv=False)
     if df_proc.empty:
         st.info("No experimental observations recorded yet.")
         return
@@ -29,7 +29,7 @@ def render() -> None:
     if exp_scope != "All":
         df_proc = df_proc[df_proc["experiment_type"] == exp_scope].copy()
 
-    stats_res = run_full_statistical_analysis(df_proc, save_csv=True)
+    stats_res = run_full_statistical_analysis(df_proc, save_csv=not df_proc.empty)
     excl = stats_res["exclusions"]
     st.caption(
         f"Total records: {excl['total_records']} | Evaluable: {excl['evaluable_trials']} | "

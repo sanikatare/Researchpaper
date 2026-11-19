@@ -7,14 +7,24 @@ import time
 import pandas as pd
 import streamlit as st
 
+import json
+
 from app.components import render_metric_card, render_page_header
-from config import CATEGORY_LABELS, MODALITIES, PILOT_TARGET_CALLS, THINKING_LEVELS
+from config import (
+    CATEGORY_LABELS,
+    MODALITIES,
+    PILOT_MANIFEST_JSON,
+    PILOT_TARGET_CALLS,
+    PILOT_TARGET_REPETITIONS,
+    THINKING_LEVELS,
+)
 from dataset.scenario_manager import load_active_dataset
 from evaluation.annotation import build_processed_results
 from evaluation.metrics import generate_pilot_report
 from experiment.experiment_controller import get_controller
 from experiment.experiment_runner import build_trial_plan, filter_pending_trials
 from experiment.hydrogen_client import is_api_fully_validated
+from experiment.manifest import build_experiment_manifest
 from experiment.storage import load_runtime_config, load_trial_records
 
 
@@ -61,13 +71,20 @@ def render() -> None:
         selected_levels = st.multiselect(
             "Thinking Levels", options=list(THINKING_LEVELS), default=list(THINKING_LEVELS)
         )
-        pilot_reps = st.number_input("Repetitions", min_value=1, max_value=3, value=1, step=1)
+        pilot_reps = st.number_input(
+            "Repetitions (Fixed Pilot Protocol: 1)",
+            min_value=PILOT_TARGET_REPETITIONS,
+            max_value=PILOT_TARGET_REPETITIONS,
+            value=PILOT_TARGET_REPETITIONS,
+            step=1,
+            disabled=True,
+        )
         randomize_pilot = st.checkbox("Randomize Trial Order", value=True)
 
     pilot_cfg = load_runtime_config()
     pilot_cfg.modalities = selected_modalities or list(MODALITIES)
     pilot_cfg.thinking_levels = selected_levels or list(THINKING_LEVELS)
-    pilot_cfg.repetitions = int(pilot_reps)
+    pilot_cfg.repetitions = PILOT_TARGET_REPETITIONS
     pilot_cfg.randomize_order = bool(randomize_pilot)
 
     plan = build_trial_plan(
@@ -170,8 +187,22 @@ def render() -> None:
         ]
         st.dataframe(df_pilot[cols], use_container_width=True, hide_index=True)
 
-    if st.button("Generate Pilot Evaluation Report"):
-        df_proc = build_processed_results("pilot", save_csv=False)
-        report_md = generate_pilot_report(df_proc, pilot_scenarios)
-        st.success("Generated `research/pilot_report.md`.")
-        st.markdown(report_md)
+    pr1, pr2 = st.columns(2)
+    with pr1:
+        if st.button("Generate Pilot Evaluation Report", use_container_width=True):
+            df_proc = build_processed_results("pilot", save_csv=False)
+            report_md = generate_pilot_report(df_proc, pilot_scenarios)
+            build_experiment_manifest("pilot", save_path=PILOT_MANIFEST_JSON, config=pilot_cfg)
+            st.success("Generated `research/pilot_report.md` and `results/pilot/pilot_experiment_manifest.json`.")
+            st.markdown(report_md)
+    with pr2:
+        if st.button("Generate Pilot Manifest (JSON)", use_container_width=True):
+            p_man = build_experiment_manifest("pilot", save_path=PILOT_MANIFEST_JSON, config=pilot_cfg)
+            st.success("Saved `results/pilot/pilot_experiment_manifest.json`.")
+            st.download_button(
+                "Download Pilot Manifest (JSON)",
+                data=json.dumps(p_man, indent=2),
+                file_name="pilot_experiment_manifest.json",
+                mime="application/json",
+                use_container_width=True,
+            )

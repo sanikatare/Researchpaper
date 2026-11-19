@@ -466,10 +466,10 @@ def fit_mixed_effects_logistic_model(
         }
 
 
-def _estimate_cluster_icc(df_evaluable: pd.DataFrame) -> float:
+def _estimate_cluster_icc(df_evaluable: pd.DataFrame) -> Optional[float]:
     """Estimate conservative scenario-level intra-cluster correlation (ICC) on refusal indicator."""
     if df_evaluable.empty or df_evaluable["scenario_id"].nunique() < 2:
-        return 0.0
+        return None
     work = df_evaluable.copy()
     work["y"] = work["resolved_label"].isin(["appropriate_refusal", "over_refusal"]).astype(float)
     grand_mean = work["y"].mean()
@@ -478,7 +478,7 @@ def _estimate_cluster_icc(df_evaluable: pd.DataFrame) -> float:
     means = grp.mean()
     k = len(sizes)
     if k < 2 or len(work) <= k:
-        return 0.0
+        return None
     ssb = float(np.sum(sizes * (means - grand_mean) ** 2))
     ssw = float(np.sum((work["y"] - work.groupby("scenario_id")["y"].transform("mean")) ** 2))
     msb = ssb / (k - 1)
@@ -494,17 +494,25 @@ def compute_statistical_power_assessment(df_evaluable: pd.DataFrame) -> pd.DataF
     """Assess cluster-adjusted statistical power on observed data & confirmatory design."""
     n_obs = len(df_evaluable)
     n_scen = int(df_evaluable["scenario_id"].nunique()) if not df_evaluable.empty else 0
-    icc = _estimate_cluster_icc(df_evaluable)
+    obs_icc = _estimate_cluster_icc(df_evaluable)
     cluster_size = (n_obs / n_scen) if n_scen > 0 else 1.0
-    vif = 1.0 + max(0.0, cluster_size - 1.0) * icc
-    n_eff_obs = max(0.0, n_obs / vif)
+    if obs_icc is not None:
+        vif = 1.0 + max(0.0, cluster_size - 1.0) * obs_icc
+        n_eff_obs = max(0.0, n_obs / vif)
+    else:
+        vif = None
+        n_eff_obs = 0.0
+
+    design_icc = max(obs_icc if obs_icc is not None else 0.0, 0.10)
+    design_vif = 1.0 + 23.0 * design_icc
+    design_eff = 1440.0 / design_vif
 
     power_calc = NormalIndPower()
     rows: List[Dict[str, Any]] = []
 
     scenarios_to_assess = [
-        ("Observed Evaluable Sample", n_obs, n_scen, icc, vif, n_eff_obs),
-        ("Confirmatory Design Target (N=1,440, 60 scenarios)", 1440, 60, max(icc, 0.10), 1.0 + 23.0 * max(icc, 0.10), 1440.0 / (1.0 + 23.0 * max(icc, 0.10))),
+        ("Observed Evaluable Sample", n_obs, n_scen, obs_icc, vif, n_eff_obs),
+        ("Confirmatory Design Target (N=1,440, 60 scenarios)", 1440, 60, design_icc, design_vif, design_eff),
     ]
 
     for scope_label, raw_n, scen_cnt, used_icc, used_vif, eff_n in scenarios_to_assess:
@@ -528,8 +536,8 @@ def compute_statistical_power_assessment(df_evaluable: pd.DataFrame) -> pd.DataF
                     "assessment_scope": scope_label,
                     "raw_n": int(raw_n),
                     "n_scenarios": int(scen_cnt),
-                    "estimated_icc": round(float(used_icc), 4),
-                    "design_effect_vif": round(float(used_vif), 3),
+                    "estimated_icc": round(float(used_icc), 4) if used_icc is not None else None,
+                    "design_effect_vif": round(float(used_vif), 3) if used_vif is not None else None,
                     "effective_n": round(float(eff_n), 1),
                     "effect_size_target": h_desc,
                     "power_alpha_0_05": round(pwr_05, 4) if pwr_05 is not None else None,
